@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
 
 namespace RequestWithLaz0rz
@@ -11,6 +12,32 @@ namespace RequestWithLaz0rz
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _header = new Dictionary<string, string>();
         private HttpWebRequest _request;
+
+        public event CompletedHandler<TResponse> Completed;
+
+        /// <summary>
+        /// Executes the completed handler.
+        /// </summary>
+        /// <param name="args">Event arguments</param>
+        private void OnCompleted(CompletedEventArgs<TResponse> args)
+        {
+            var handler = Completed;
+            if (handler != null) handler(this, args);
+        }
+
+
+        public event ErrorHandler<TResponse> Error;
+
+        /// <summary>
+        /// Executes the error handler
+        /// </summary>
+        /// <param name="args">Error event arguments</param>
+        private void OnError(ErrorEventArgs args)
+        {
+            var handler = Error;
+            if (handler != null) handler(this, args);
+        }
+
 
         protected abstract string BaseUri
         {
