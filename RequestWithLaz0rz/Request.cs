@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
+using RequestWithLaz0rz.Type;
 
 namespace RequestWithLaz0rz
 {
@@ -49,7 +51,7 @@ namespace RequestWithLaz0rz
             get;
         }
 
-        protected abstract ResponseFormat Format
+        protected abstract DataFormat Format
         {
             get;
         }
@@ -101,7 +103,7 @@ namespace RequestWithLaz0rz
         private static bool TryBuildQuery(IReadOnlyCollection<KeyValuePair<string, string>> paramDict, out string query)  
         {
             //does nothing if no parameter are added
-            if (paramDict.Count == 0)
+            if (!paramDict.Any())
             {
                 query = null;
                 return false;
@@ -165,6 +167,8 @@ namespace RequestWithLaz0rz
             
             AddHeader(ref _request);          
 
+            //_request.Method = TODO set method
+
             if (_request != null)
             {
                 _request.BeginGetResponse(result =>
@@ -216,7 +220,7 @@ namespace RequestWithLaz0rz
         /// Tries to parse the response
         /// </summary>
         /// <returns>Whether the response could be parsed</returns>
-        private static bool TryParseResponse(IAsyncResult result, ResponseFormat format, out TResponse response)
+        private static bool TryParseResponse(IAsyncResult result, DataFormat format, out TResponse response)
         {
             var request = result.AsyncState as HttpWebRequest;
 
@@ -228,13 +232,13 @@ namespace RequestWithLaz0rz
 
                     switch (format)
                     {
-                        case ResponseFormat.JSON:
+                        case DataFormat.JSON:
                             return new JsonSerializer<TResponse>().TryParse(res, out response);
          
-                        case ResponseFormat.XML:
+                        case DataFormat.XML:
                             return new XmlSerializer<TResponse>().TryParse(res, out response);
 
-                        case ResponseFormat.Text:
+                        case DataFormat.Text:
                             return new TextSerializer<TResponse>().TryParse(res, out response);
 
                     }
