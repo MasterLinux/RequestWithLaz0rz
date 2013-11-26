@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
 using RequestWithLaz0rz.Type;
@@ -52,6 +53,11 @@ namespace RequestWithLaz0rz
         }
 
         protected abstract DataFormat Format
+        {
+            get;
+        }
+
+        protected abstract HttpMethod Method
         {
             get;
         }
@@ -157,6 +163,8 @@ namespace RequestWithLaz0rz
             return this;
         }
 
+        
+
         public Request<TResponse> Start()
         {
             if (IsBusy) return this;
@@ -164,13 +172,16 @@ namespace RequestWithLaz0rz
 
             //create request
             _request = WebRequest.Create(Uri) as HttpWebRequest;
-            
-            AddHeader(ref _request);          
-
-            //_request.Method = TODO set method
-
+           
             if (_request != null)
             {
+                //TODO check whether the request is updated
+                //initialize request
+                _request
+                    .AddHeader(_header)
+                    .SetMethod(Method);
+
+                //start request
                 _request.BeginGetResponse(result =>
                 {
                     TResponse response;
@@ -197,6 +208,8 @@ namespace RequestWithLaz0rz
             return this;
         }
 
+        
+
         public Request<TResponse> Abort()
         {
             if (!IsBusy || _request == null) return this;
@@ -205,16 +218,6 @@ namespace RequestWithLaz0rz
 
             return this;
         } 
-
-        private void AddHeader(ref HttpWebRequest request)
-        {
-            if(_header.Count == 0) return;
-
-            foreach (var header in _header)
-            {
-                request.Headers[header.Key] = header.Value;
-            }
-        }
 
         /// <summary>
         /// Tries to parse the response
