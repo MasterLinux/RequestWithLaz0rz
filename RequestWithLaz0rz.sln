@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestWithLaz0rz", "Reques
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestWithLaz0rzTestApp", "RequestWithLaz0rzTestApp\RequestWithLaz0rzTestApp.csproj", "{E1F35F52-7B71-4FC3-A6DE-1ED3EAFF1F2D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Jamendo", "Jamendo\Jamendo.csproj", "{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,30 @@ Global
 		{E1F35F52-7B71-4FC3-A6DE-1ED3EAFF1F2D}.Release|x86.ActiveCfg = Release|x86
 		{E1F35F52-7B71-4FC3-A6DE-1ED3EAFF1F2D}.Release|x86.Build.0 = Release|x86
 		{E1F35F52-7B71-4FC3-A6DE-1ED3EAFF1F2D}.Release|x86.Deploy.0 = Release|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|ARM.ActiveCfg = Debug|ARM
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|ARM.Build.0 = Debug|ARM
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|ARM.Deploy.0 = Debug|ARM
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|Mixed Platforms.Deploy.0 = Debug|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|x86.ActiveCfg = Debug|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|x86.Build.0 = Debug|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Debug|x86.Deploy.0 = Debug|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|ARM.ActiveCfg = Release|ARM
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|ARM.Build.0 = Release|ARM
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|ARM.Deploy.0 = Release|ARM
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|Mixed Platforms.Build.0 = Release|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|Mixed Platforms.Deploy.0 = Release|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|x86.ActiveCfg = Release|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|x86.Build.0 = Release|x86
+		{B257D8AF-3E75-4CD5-8301-6E796BF4FB4A}.Release|x86.Deploy.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
