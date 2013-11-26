@@ -16,6 +16,12 @@ namespace RequestWithLaz0rz
         private readonly Dictionary<string, string> _header = new Dictionary<string, string>();
         private HttpWebRequest _request;
 
+        #region event handler
+
+        /// <summary>
+        /// Event which is invoked whenever the request is
+        /// successfully executed. 
+        /// </summary>
         public event CompletedHandler<TResponse> Completed;
 
         /// <summary>
@@ -28,7 +34,10 @@ namespace RequestWithLaz0rz
             if (handler != null) handler(this, args);
         }
 
-
+        /// <summary>
+        /// Event which is invoked whenever an error occured
+        /// during the request executing.
+        /// </summary>
         public event ErrorHandler<TResponse> Error;
 
         /// <summary>
@@ -41,6 +50,7 @@ namespace RequestWithLaz0rz
             if (handler != null) handler(this, args);
         }
 
+        #endregion
 
         protected abstract string BaseUri
         {
@@ -52,12 +62,12 @@ namespace RequestWithLaz0rz
             get;
         }
 
-        protected abstract DataFormat Format
+        protected abstract ContentType ContentType
         {
             get;
         }
 
-        protected abstract HttpMethod Method
+        protected abstract HttpMethod HttpMethod
         {
             get;
         }
@@ -176,17 +186,17 @@ namespace RequestWithLaz0rz
             if (_request != null)
             {
                 //TODO check whether the request is updated
-                //initialize request
+                //configure request
                 _request
                     .AddHeader(_header)
-                    .SetMethod(Method);
+                    .SetMethod(HttpMethod);
 
                 //start request
                 _request.BeginGetResponse(result =>
                 {
                     TResponse response;
 
-                    if (TryParseResponse(result, Format, out response))
+                    if (TryParseResponse(result, ContentType, out response))
                     {
                         //TODO handle events
                     }
@@ -223,7 +233,7 @@ namespace RequestWithLaz0rz
         /// Tries to parse the response
         /// </summary>
         /// <returns>Whether the response could be parsed</returns>
-        private static bool TryParseResponse(IAsyncResult result, DataFormat format, out TResponse response)
+        private static bool TryParseResponse(IAsyncResult result, ContentType format, out TResponse response)
         {
             var request = result.AsyncState as HttpWebRequest;
 
@@ -235,13 +245,13 @@ namespace RequestWithLaz0rz
 
                     switch (format)
                     {
-                        case DataFormat.JSON:
+                        case ContentType.Json:
                             return new JsonSerializer<TResponse>().TryParse(res, out response);
          
-                        case DataFormat.XML:
+                        case ContentType.Xml:
                             return new XmlSerializer<TResponse>().TryParse(res, out response);
 
-                        case DataFormat.Text:
+                        case ContentType.Text:
                             return new TextSerializer<TResponse>().TryParse(res, out response);
 
                     }
