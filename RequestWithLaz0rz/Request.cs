@@ -101,7 +101,33 @@ namespace RequestWithLaz0rz
 
         private static bool TryAddPath(string baseUri, string path, out string s)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(baseUri) || string.IsNullOrEmpty(path))
+            {
+                s = null;
+                return false;
+            }
+
+            var baseUriEndsWithSlash = baseUri.EndsWith("/");
+            var pathStartsWithSlash = path.StartsWith("/");
+
+            //add slash if not exists
+            if (!baseUriEndsWithSlash && !pathStartsWithSlash)
+            {
+                s = new StringBuilder().Append("/").Append(path).ToString();
+            }
+
+            //remove slash if both contains 
+            else if (baseUriEndsWithSlash && pathStartsWithSlash)
+            {
+                s = path.TrimStart('/');
+            }
+
+            //everything is OK ;)
+            else {
+                s = path;
+            }
+
+            return true;
         }
 
         /// <summary>
