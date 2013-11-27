@@ -5,3 +5,5 @@ C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.csprojResolveAssemblyReference.cache
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.dll
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.pdb
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.Resources.Strings.resources
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.csproj.GenerateResource.Cache

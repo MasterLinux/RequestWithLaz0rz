@@ -1,5 +1,5 @@
-﻿<xapCache source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\Jamendo_Debug_x86.xap" wasSigned="False" wasTritonized="False" certificateThumbprint="" TimeStampUrl="" signKeyFile="" signKeyPassword="" lastWriteTime="26.11.2013 21:55:32">
-  <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\obj\x86\Debug\Jamendo.dll" archivePath="Jamendo.dll" lastWriteTime="26.11.2013 21:55:32" />
+﻿<xapCache source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\Jamendo_Debug_x86.xap" wasSigned="False" wasTritonized="False" certificateThumbprint="" TimeStampUrl="" signKeyFile="" signKeyPassword="" lastWriteTime="27.11.2013 17:59:20">
+  <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\obj\x86\Debug\Jamendo.dll" archivePath="Jamendo.dll" lastWriteTime="27.11.2013 17:59:19" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Assets\AlignmentGrid.png" archivePath="Assets\AlignmentGrid.png" lastWriteTime="26.11.2013 21:12:09" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Assets\Tiles\FlipCycleTileLarge.png" archivePath="Assets\Tiles\FlipCycleTileLarge.png" lastWriteTime="26.11.2013 21:12:09" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Assets\Tiles\FlipCycleTileSmall.png" archivePath="Assets\Tiles\FlipCycleTileSmall.png" lastWriteTime="26.11.2013 21:12:09" />
@@ -9,7 +9,7 @@
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\Assets\ApplicationIcon.png" archivePath="Assets\ApplicationIcon.png" lastWriteTime="26.11.2013 21:12:09" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\Assets\Tiles\FlipCycleTileMedium.png" archivePath="Assets\Tiles\FlipCycleTileMedium.png" lastWriteTime="26.11.2013 21:12:09" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\packages\Newtonsoft.Json.5.0.8\lib\portable-net45+wp80+win8\Newtonsoft.Json.dll" archivePath="Newtonsoft.Json.dll" lastWriteTime="26.11.2013 19:17:32" />
-  <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\Bin\x86\Debug\RequestWithLaz0rz.dll" archivePath="RequestWithLaz0rz.dll" lastWriteTime="26.11.2013 19:42:35" />
+  <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\Bin\x86\Debug\RequestWithLaz0rz.dll" archivePath="RequestWithLaz0rz.dll" lastWriteTime="27.11.2013 17:59:18" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\packages\Newtonsoft.Json.5.0.8\lib\portable-net45+wp80+win8\Newtonsoft.Json.xml" archivePath="Newtonsoft.Json.xml" lastWriteTime="26.11.2013 19:17:32" />
   <file source="C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\Properties\WMAppManifest.xml" archivePath="WMAppManifest.xml" lastWriteTime="26.11.2013 21:12:13" />
 </xapCache>

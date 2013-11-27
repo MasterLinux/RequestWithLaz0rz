@@ -57,13 +57,11 @@ namespace RequestWithLaz0rz
         /// Invokes the validation event.
         /// </summary>
         /// <param name="args">Event arguments</param>
-        /// <param name="errorMessage">The error message of the occured error or null if no error</param>
         /// <returns>true if response is valid and no error occured, false otherwise</returns>
-        private bool OnValidation(CompletedEventArgs<TResponse> args, out string errorMessage)
+        private bool OnValidation(CompletedEventArgs<TResponse> args)
         {
             var handler = Validation;
-            errorMessage = null;
-            return handler == null || handler(this, args, out errorMessage);
+            return handler == null || handler(this, args);
         }
 
         #endregion
@@ -236,41 +234,40 @@ namespace RequestWithLaz0rz
                 //start request
                 _request.BeginGetResponse(result =>
                 {
-                    HttpStatusCode statusCode;
-                    TResponse response;
+                    HttpWebResponse response;
+                    TResponse content;
 
-                    if (TryParseResponse(result, ContentType, out statusCode, out response))
+                    if (TryParseResponse(result, ContentType, out response, out content))
                     {
-                        string errorMessage;
-
                         //TODO update arguments
                         var args = new CompletedEventArgs<TResponse>
                         {
-                            Response = response,
-                            StatusCode = statusCode,
+                            Response = content,
+                            StatusCode = response.StatusCode,
                             IsErrorOccured = false,
                             IsCached = false //TODO set dynamically
                         };
 
                         //response is valid
-                        if (OnValidation(args, out errorMessage))
+                        if (OnValidation(args))
                         {
                             OnCompleted(args);
                         }
+
+                        //an error occurred
                         else
                         {
-                            //set error
-                            args.ErrorMessage = errorMessage;
                             args.IsErrorOccured = true;
-
                             OnError(args);
                         }
                     }
                     else
                     {
                         IsBusy = false;
-                        throw new ParseException(ContentType); //TODO pass content type of response
-                        //TODO throw error
+
+                        //throw parse exception
+                        var actualContentType = response != null ? response.ContentType : "?";                      
+                        throw new ParseException(ContentType, actualContentType);
                     }
 
                     IsBusy = false;
@@ -301,7 +298,7 @@ namespace RequestWithLaz0rz
         /// Tries to parse the response
         /// </summary>
         /// <returns>Whether the response could be parsed</returns>
-        private static bool TryParseResponse(IAsyncResult result, ContentType format, out HttpStatusCode statusCode, out TResponse response)
+        private static bool TryParseResponse(IAsyncResult result, ContentType format, out HttpWebResponse response, out TResponse content)
         {
             var request = result.AsyncState as HttpWebRequest;
 
@@ -309,40 +306,36 @@ namespace RequestWithLaz0rz
             {
                 try
                 {
-                    var webResponse = request.EndGetResponse(result) as HttpWebResponse;
+                    response = request.EndGetResponse(result) as HttpWebResponse;
 
-                    if (webResponse != null)
+                    if (response != null)
                     {
-                        statusCode = webResponse.StatusCode;
-
                         switch (format)
                         {
                             case ContentType.Json:
-                                return new JsonSerializer<TResponse>().TryParse(webResponse, out response);
+                                return new JsonSerializer<TResponse>().TryParse(response, out content);
 
                             case ContentType.Xml:
-                                return new XmlSerializer<TResponse>().TryParse(webResponse, out response);
+                                return new XmlSerializer<TResponse>().TryParse(response, out content);
 
                             case ContentType.Text:
-                                return new TextSerializer<TResponse>().TryParse(webResponse, out response);
+                                return new TextSerializer<TResponse>().TryParse(response, out content);
 
                         }
                     }
                 }
                 catch (WebException exception)
                 {
-                    var webResponse = exception.Response as HttpWebResponse;
+                    response = exception.Response as HttpWebResponse;
 
-                    if(webResponse != null) {
-                        statusCode = webResponse.StatusCode;
-                        //response = 
+                    if(response != null) {
                         //TODO parse response and throw error
                     }
                 }
             }
 
-            statusCode = HttpStatusCode.NoContent;
-            response = default(TResponse);
+            response = null;
+            content = default(TResponse);
             return false;
         }
     }

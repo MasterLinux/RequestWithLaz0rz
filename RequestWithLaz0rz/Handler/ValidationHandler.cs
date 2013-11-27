@@ -2,7 +2,6 @@
 {
     public delegate bool ValidationHandler<TResponse>(
         Request<TResponse> sender, 
-        CompletedEventArgs<TResponse> args, 
-        out string errorMessage
+        CompletedEventArgs<TResponse> args
     );
 }
