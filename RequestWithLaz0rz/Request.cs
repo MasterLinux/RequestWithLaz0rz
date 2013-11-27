@@ -212,9 +212,7 @@ namespace RequestWithLaz0rz
             _header.Add(header.Key, header.Value);
             return this;
         }
-
-        
-
+     
         public Request<TResponse> Start()
         {
             if (IsBusy) return this;
@@ -284,7 +282,6 @@ namespace RequestWithLaz0rz
         }
 
         
-
         public Request<TResponse> Abort()
         {
             if (!IsBusy || _request == null) return this;
