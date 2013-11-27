@@ -6,14 +6,10 @@ namespace RequestWithLaz0rz.Handler
 
     public class CompletedEventArgs<TResponse> : EventArgs
     {
-        public CompletedEventArgs(int statusCode, TResponse response, bool isCached)
-        {
-            Response = response;
-        }
+        public TResponse Response { set; get; }
 
-        public TResponse Response
-        {
-            private set; get;
-        }
+        public bool IsCached { get; set; }
+
+        public int StatusCode { get; set; }
     }
 }

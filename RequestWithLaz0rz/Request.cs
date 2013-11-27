@@ -220,10 +220,18 @@ namespace RequestWithLaz0rz
                 //start request
                 _request.BeginGetResponse(result =>
                 {
+                    HttpStatusCode statusCode;
                     TResponse response;
 
-                    if (TryParseResponse(result, ContentType, out response))
+                    if (TryParseResponse(result, ContentType, out statusCode, out response))
                     {
+                        //TODO add error handling
+
+                        OnCompleted(new CompletedEventArgs<TResponse>
+                        {
+                            Response = response,
+                            StatusCode = statusCode
+                        });
                         //TODO handle events
                     }
                     else
@@ -259,7 +267,7 @@ namespace RequestWithLaz0rz
         /// Tries to parse the response
         /// </summary>
         /// <returns>Whether the response could be parsed</returns>
-        private static bool TryParseResponse(IAsyncResult result, ContentType format, out TResponse response)
+        private static bool TryParseResponse(IAsyncResult result, ContentType format, out HttpStatusCode statusCode, out TResponse response)
         {
             var request = result.AsyncState as HttpWebRequest;
 
@@ -267,27 +275,39 @@ namespace RequestWithLaz0rz
             {
                 try
                 {
-                    var res = request.EndGetResponse(result);
+                    var webResponse = request.EndGetResponse(result) as HttpWebResponse;
 
-                    switch (format)
+                    if (webResponse != null)
                     {
-                        case ContentType.Json:
-                            return new JsonSerializer<TResponse>().TryParse(res, out response);
-         
-                        case ContentType.Xml:
-                            return new XmlSerializer<TResponse>().TryParse(res, out response);
+                        statusCode = webResponse.StatusCode;
 
-                        case ContentType.Text:
-                            return new TextSerializer<TResponse>().TryParse(res, out response);
+                        switch (format)
+                        {
+                            case ContentType.Json:
+                                return new JsonSerializer<TResponse>().TryParse(webResponse, out response);
 
+                            case ContentType.Xml:
+                                return new XmlSerializer<TResponse>().TryParse(webResponse, out response);
+
+                            case ContentType.Text:
+                                return new TextSerializer<TResponse>().TryParse(webResponse, out response);
+
+                        }
                     }
                 }
                 catch (WebException exception)
                 {
-                    //TODO throw error
+                    var webResponse = exception.Response as HttpWebResponse;
+
+                    if(webResponse != null) {
+                        statusCode = webResponse.StatusCode;
+                        //response = 
+                        //TODO parse response and throw error
+                    }
                 }
             }
 
+            statusCode = HttpStatusCode.NoContent;
             response = default(TResponse);
             return false;
         }
