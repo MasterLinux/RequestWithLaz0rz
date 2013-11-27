@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
@@ -38,16 +39,31 @@ namespace RequestWithLaz0rz
         /// Event which is invoked whenever an error occured
         /// during the request executing.
         /// </summary>
-        public event ErrorHandler<TResponse> Error;
+        public event CompletedHandler<TResponse> Error;
 
         /// <summary>
         /// Executes the error handler
         /// </summary>
-        /// <param name="args">Error event arguments</param>
-        private void OnError(ErrorEventArgs args)
+        /// <param name="args">Event arguments</param>
+        private void OnError(CompletedEventArgs<TResponse> args)
         {
             var handler = Error;
             if (handler != null) handler(this, args);
+        }
+
+        public event ValidationHandler<TResponse> Validation;
+
+        /// <summary>
+        /// Invokes the validation event.
+        /// </summary>
+        /// <param name="args">Event arguments</param>
+        /// <param name="errorMessage">The error message of the occured error or null if no error</param>
+        /// <returns>true if response is valid and no error occured, false otherwise</returns>
+        private bool OnValidation(CompletedEventArgs<TResponse> args, out string errorMessage)
+        {
+            var handler = Validation;
+            errorMessage = null;
+            return handler == null || handler(this, args, out errorMessage);
         }
 
         #endregion
@@ -225,17 +241,35 @@ namespace RequestWithLaz0rz
 
                     if (TryParseResponse(result, ContentType, out statusCode, out response))
                     {
-                        //TODO add error handling
+                        string errorMessage;
 
-                        OnCompleted(new CompletedEventArgs<TResponse>
+                        //TODO update arguments
+                        var args = new CompletedEventArgs<TResponse>
                         {
                             Response = response,
-                            StatusCode = statusCode
-                        });
-                        //TODO handle events
+                            StatusCode = statusCode,
+                            IsErrorOccured = false,
+                            IsCached = false //TODO set dynamically
+                        };
+
+                        //response is valid
+                        if (OnValidation(args, out errorMessage))
+                        {
+                            OnCompleted(args);
+                        }
+                        else
+                        {
+                            //set error
+                            args.ErrorMessage = errorMessage;
+                            args.IsErrorOccured = true;
+
+                            OnError(args);
+                        }
                     }
                     else
                     {
+                        IsBusy = false;
+                        throw new ParseException(ContentType); //TODO pass content type of response
                         //TODO throw error
                     }
 

@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Net;
 
 namespace RequestWithLaz0rz.Handler
 {
-    public delegate void CompletedHandler<TResponse>(Request<TResponse> sender, CompletedEventArgs<TResponse> args);
+    public delegate void CompletedHandler<TResponse>(
+        Request<TResponse> sender, 
+        CompletedEventArgs<TResponse> args
+    );
 
     public class CompletedEventArgs<TResponse> : EventArgs
     {
@@ -10,6 +14,10 @@ namespace RequestWithLaz0rz.Handler
 
         public bool IsCached { get; set; }
 
-        public int StatusCode { get; set; }
+        public bool IsErrorOccured { get; set; }
+
+        public string ErrorMessage { get; set; }
+
+        public HttpStatusCode StatusCode { get; set; }
     }
 }
