@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using C5;
 using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
@@ -11,10 +12,11 @@ using RequestWithLaz0rz.Type;
 
 namespace RequestWithLaz0rz
 {
-    public abstract class Request<TResponse>    
+    public abstract class Request<TResponse> : IRequest  
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _header = new Dictionary<string, string>();
+        private readonly RequestQueue _queue = RequestQueue.Instance;
         private HttpWebRequest _request;
 
         #region event handler
@@ -156,7 +158,7 @@ namespace RequestWithLaz0rz
         /// <param name="paramDict">Dictionary of parameter</param>
         /// <param name="query">The required query or null if no parameter added</param>
         /// <returns></returns>
-        private static bool TryBuildQuery(IReadOnlyCollection<KeyValuePair<string, string>> paramDict, out string query)  
+        private static bool TryBuildQuery(IReadOnlyCollection<System.Collections.Generic.KeyValuePair<string, string>> paramDict, out string query)  
         {
             //does nothing if no parameter are added
             if (!paramDict.Any())
@@ -212,15 +214,17 @@ namespace RequestWithLaz0rz
             _header.Add(header.Key, header.Value);
             return this;
         }
-     
-        public Request<TResponse> Start()
+
+        public IPriorityQueueHandle<Priority<IRequest>> QueueHandle { get; set; }
+
+        public void Run()
         {
-            if (IsBusy) return this;
+            if (IsBusy) return;
             IsBusy = true;
 
             //create request
             _request = WebRequest.Create(Uri) as HttpWebRequest;
-           
+
             if (_request != null)
             {
                 //TODO check whether the request is updated
@@ -264,7 +268,7 @@ namespace RequestWithLaz0rz
                         IsBusy = false;
 
                         //throw parse exception
-                        var actualContentType = response != null ? response.ContentType : "?";                      
+                        var actualContentType = response != null ? response.ContentType : "?";
                         throw new ParseException(ContentType, actualContentType);
                     }
 
@@ -277,6 +281,18 @@ namespace RequestWithLaz0rz
                 //TODO throw error
                 IsBusy = false;
             }
+        }
+     
+        public Request<TResponse> Execute()
+        {
+            if (IsBusy) return this;
+
+            IPriorityQueueHandle<Priority<IRequest>> handle = null;
+            
+            //add to queue
+            _queue.Enqueue(ref handle, this);
+
+            QueueHandle = handle;
 
             return this;
         }

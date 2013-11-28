@@ -2,7 +2,6 @@ C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\Bin\x86\Debug\RequestWithLaz0rz.pdb
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\Bin\x86\Debug\Newtonsoft.Json.dll
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\Bin\x86\Debug\Newtonsoft.Json.xml
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.csprojResolveAssemblyReference.cache
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.dll
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.pdb
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\x86\Debug\RequestWithLaz0rz.Resources.Strings.resources
