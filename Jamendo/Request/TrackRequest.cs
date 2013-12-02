@@ -33,5 +33,10 @@ namespace Jamendo.Request
         {
             get { return HttpMethod.GET; }
         }
+
+        public override RequestPriority Priority
+        {
+            get { return RequestPriority.High; }
+        }
     }
 }

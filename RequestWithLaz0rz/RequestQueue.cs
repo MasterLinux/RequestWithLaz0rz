@@ -61,7 +61,7 @@ namespace RequestWithLaz0rz
 
         /// <summary>
         /// Removes the next request with the highest 
-        /// priority from queue and executes this.
+        /// priority from queue and executes it.
         /// </summary>
         private void Dequeue()
         {

@@ -29,7 +29,7 @@ namespace Jamendo
 
             var request = new TrackRequest("b6747d04");
 
-            request.Start();
+            request.Execute();
         }
 
         // Sample code for building a localized ApplicationBar
