@@ -7,7 +7,7 @@ namespace RequestWithLaz0rz
     public class RequestQueue
     {
         private static readonly Lazy<RequestQueue> Lazy = new Lazy<RequestQueue>(() => new RequestQueue());
-        private readonly IntervalHeap<Priority<IRequest>> _queue = new IntervalHeap<Priority<IRequest>>(new PriorityComparer<IRequest>());
+        private readonly IntervalHeap<IRequest> _queue = new IntervalHeap<IRequest>(new PriorityComparer());
 
         /// <summary>
         /// Gets the singleton instance of
@@ -43,84 +43,47 @@ namespace RequestWithLaz0rz
 
         #endregion
 
-        public void Enqueue(ref IPriorityQueueHandle<Priority<IRequest>> handle, IRequest request)
+        /// <summary>
+        /// Adds a new request to the queue. In addition
+        /// it starts to dequeue the queue when min one 
+        /// request is added.
+        /// </summary>
+        /// <param name="handle">The request handle of the added request</param>
+        /// <param name="request">The request to add</param>
+        protected internal void Enqueue(ref IPriorityQueueHandle<IRequest> handle, IRequest request)
         {
             lock (_queue)
             {
-                _queue.Add(ref handle, new Priority<IRequest>(request, 10)); //TODO add request.priority instead of 10
+                _queue.Add(ref handle, request); 
                 Dequeue();
             }
         }
 
-        public void Dequeue()
+        /// <summary>
+        /// Removes the next request with the highest 
+        /// priority from queue and executes this.
+        /// </summary>
+        private void Dequeue()
         {
             lock (_queue)
             {
                 if (_queue.IsEmpty) return;
-                var priority = _queue.DeleteMin();
+                var request = _queue.DeleteMin();
 
-                priority.Data.Run(); //TODO wait for events
+                request.Run(); //TODO wait for events
             }
         }
     }
 
-    internal struct PriorityComparer<T> : IComparer<Priority<T>>
+    /// <summary>
+    /// Comparer which is used to select the request
+    /// with the highest priority in queue.
+    /// </summary>
+    internal struct PriorityComparer : IComparer<IRequest>
     {
-        public int Compare(Priority<T> x, Priority<T> y)
+        public int Compare(IRequest x, IRequest y)
         {
             return x.CompareTo(y);
-        }
-    }
-
-    public struct Priority<T> : IComparable<Priority<T>>
-    {
-        private readonly T _data;
-        private readonly int _priority;
-
-        public Priority(T data, int priority)
-        {
-            _data = data;
-            _priority = priority;
-        }
-
-        public T Data
-        {
-            get
-            {
-                return _data;
-            }
-        }
-
-        public int CompareTo(Priority<T> other)
-        {
-            return _priority.CompareTo(other._priority);
-        }
-
-        public bool Equals(Priority<T> other)
-        {
-            return _priority == other._priority;
-        }
-
-        /// <summary>
-        /// Increments the priority
-        /// </summary>
-        /// <param name="priority">The priority to increment</param>
-        /// <param name="delta">How much the priority should be incremented</param>
-        /// <returns>Incremented priority</returns>
-        public static Priority<T> operator +(Priority<T> priority, int delta)
-        {
-            return new Priority<T>(priority._data, priority._priority + delta);
-        }
-
-        /// <summary>
-        /// Decrements the priority
-        /// </summary>
-        /// <param name="priority">The priority to decrement</param>
-        /// <param name="delta">How much the priority should be decremented</param>
-        /// <returns>Decremented priority</returns>
-        public static Priority<T> operator -(Priority<T> priority, int delta)
-        {
-            return new Priority<T>(priority._data, priority._priority - delta);
         }
     }
 }

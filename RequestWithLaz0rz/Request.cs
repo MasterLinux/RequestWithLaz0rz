@@ -215,7 +215,9 @@ namespace RequestWithLaz0rz
             return this;
         }
 
-        public IPriorityQueueHandle<Priority<IRequest>> QueueHandle { get; set; }
+        public IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
+
+        public abstract RequestPriority Priority { get; }
 
         public void Run()
         {
@@ -287,7 +289,7 @@ namespace RequestWithLaz0rz
         {
             if (IsBusy) return this;
 
-            IPriorityQueueHandle<Priority<IRequest>> handle = null;
+            IPriorityQueueHandle<IRequest> handle = null;
             
             //add to queue
             _queue.Enqueue(ref handle, this);
@@ -350,6 +352,16 @@ namespace RequestWithLaz0rz
             response = null;
             content = default(TResponse);
             return false;
+        }
+
+        /// <summary>
+        /// Compares the priority of this request with the priority of another request.
+        /// </summary>
+        /// <param name="other">The other request to compare with</param>
+        /// <returns>Returns whether the priority of this request is higher than the one of the other request</returns>
+        public int CompareTo(IRequest other)
+        {
+            return Priority.Compare(other.Priority);
         }
     }
 }
