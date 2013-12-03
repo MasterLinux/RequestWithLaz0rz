@@ -8,6 +8,7 @@ namespace RequestWithLaz0rz
     {
         private static readonly Lazy<RequestQueue> Lazy = new Lazy<RequestQueue>(() => new RequestQueue());
         private readonly IntervalHeap<IRequest> _queue = new IntervalHeap<IRequest>(QueueCapacity, new PriorityComparer());
+        private int _threadCount;
 
         private const int QueueCapacity = 256;
         
@@ -62,8 +63,11 @@ namespace RequestWithLaz0rz
         {
             lock (_queue)
             {
-                _queue.Add(ref handle, request); 
-                //Dequeue();
+                //invoke started event
+                if (_queue.IsEmpty) OnStarted();
+
+                _queue.Add(ref handle, request);
+                TryDequeueNext();
             }
         }
 
@@ -71,18 +75,43 @@ namespace RequestWithLaz0rz
         /// Removes the request with the highest 
         /// priority from queue and executes it.
         /// </summary>
-        private void Dequeue()
+        /// <returns>Returns whether the queue is empty</returns>
+        private bool TryDequeue()
         {
             lock (_queue)
             {
-                if (_queue.IsEmpty) return;
+                //queue is completely dequeued
+                if (_queue.IsEmpty) return true;
+
+                //max number of running thrads reached
+                if (_threadCount.Equals(MaxThreads)) return false;
+
+                ++_threadCount; //TODO create thread-safe method to increment
 
                 //get request with the highest priority
                 var request = _queue.DeleteMax();
 
+                request.Run(() =>
+                {
+                    --_threadCount; //TODO create thread-safe method to decrement
+                    TryDequeueNext();
+                });
 
+                return false;
+            }
+        }
 
-                request.Run(); //TODO wait for events
+        /// <summary>
+        /// Tries to dequeue the next request. Whenever 
+        /// the queue is empty it invokes the onCompleted
+        /// event.
+        /// </summary>
+        private void TryDequeueNext()
+        {
+            lock (_queue)
+            {
+                //invoke completed event
+                if (TryDequeue()) OnCompleted();
             }
         }
     }

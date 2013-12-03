@@ -219,7 +219,7 @@ namespace RequestWithLaz0rz
 
         public abstract RequestPriority Priority { get; }
 
-        public void Run()
+        public void Run(Action onCompleted)
         {
             if (IsBusy) return;
             IsBusy = true;
@@ -269,12 +269,18 @@ namespace RequestWithLaz0rz
                     {
                         IsBusy = false;
 
+                        //invoke onCompleted handler
+                        if (onCompleted != null) onCompleted();
+
                         //throw parse exception
                         var actualContentType = response != null ? response.ContentType : "?";
                         throw new ParseException(ContentType, actualContentType);
                     }
 
                     IsBusy = false;
+
+                    //invoke onCompleted handler
+                    if (onCompleted != null) onCompleted();
 
                 }, _request);
             }

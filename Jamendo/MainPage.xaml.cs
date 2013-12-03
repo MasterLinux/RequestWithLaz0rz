@@ -37,11 +37,6 @@ namespace Jamendo
             request.Execute();
             request2.Execute();
             request4.Execute();
-
-            RequestQueue.Instance.Dequeue();
-            RequestQueue.Instance.Dequeue();
-            RequestQueue.Instance.Dequeue();
-            RequestQueue.Instance.Dequeue();
         }
 
         // Sample code for building a localized ApplicationBar
