@@ -22,3 +22,5 @@ C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\De
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\RequestWithLaz0rz.pdb
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\Newtonsoft.Json.xml
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\obj\x86\Debug\Jamendo.csprojResolveAssemblyReference.cache
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\C5.dll
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\Jamendo\Bin\x86\Debug\C5.xml

@@ -9,6 +9,7 @@ using Jamendo.Request;
 using Microsoft.Phone.Controls;
 using Microsoft.Phone.Shell;
 using Jamendo.Resources;
+using RequestWithLaz0rz;
 
 namespace Jamendo
 {
@@ -28,8 +29,19 @@ namespace Jamendo
             base.OnNavigatedTo(e);
 
             var request = new TrackRequest("b6747d04");
+            var request2 = new TrackRequest2("b6747d04");
+            var request3 = new TrackRequest2("b6747d04");
+            var request4 = new TrackRequest2("b6747d04");
 
+            request3.Execute();
             request.Execute();
+            request2.Execute();
+            request4.Execute();
+
+            RequestQueue.Instance.Dequeue();
+            RequestQueue.Instance.Dequeue();
+            RequestQueue.Instance.Dequeue();
+            RequestQueue.Instance.Dequeue();
         }
 
         // Sample code for building a localized ApplicationBar

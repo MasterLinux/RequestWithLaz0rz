@@ -7,7 +7,15 @@ namespace RequestWithLaz0rz
     public class RequestQueue
     {
         private static readonly Lazy<RequestQueue> Lazy = new Lazy<RequestQueue>(() => new RequestQueue());
-        private readonly IntervalHeap<IRequest> _queue = new IntervalHeap<IRequest>(new PriorityComparer());
+        private readonly IntervalHeap<IRequest> _queue = new IntervalHeap<IRequest>(QueueCapacity, new PriorityComparer());
+
+        private const int QueueCapacity = 256;
+        
+        /// <summary>
+        /// Maximum number of threads running
+        /// parallel.
+        /// </summary>
+        private const int MaxThreads = 4;
 
         /// <summary>
         /// Gets the singleton instance of
@@ -55,12 +63,12 @@ namespace RequestWithLaz0rz
             lock (_queue)
             {
                 _queue.Add(ref handle, request); 
-                Dequeue();
+                //Dequeue();
             }
         }
 
         /// <summary>
-        /// Removes the next request with the highest 
+        /// Removes the request with the highest 
         /// priority from queue and executes it.
         /// </summary>
         private void Dequeue()
@@ -68,7 +76,11 @@ namespace RequestWithLaz0rz
             lock (_queue)
             {
                 if (_queue.IsEmpty) return;
-                var request = _queue.DeleteMin();
+
+                //get request with the highest priority
+                var request = _queue.DeleteMax();
+
+
 
                 request.Run(); //TODO wait for events
             }

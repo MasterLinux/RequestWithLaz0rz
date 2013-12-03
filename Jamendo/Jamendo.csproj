@@ -100,6 +100,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Request\Model\BaseRequestModel.cs" />
     <Compile Include="Request\Model\TrackRequestModel.cs" />
+    <Compile Include="Request\TrackRequest2.cs" />
     <Compile Include="Request\TrackRequest.cs" />
     <Compile Include="Resources\AppResources.Designer.cs">
       <AutoGen>True</AutoGen>
