@@ -1,15 +1,45 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 using C5;
 
 namespace RequestWithLaz0rz
 {
+    /// <summary>
+    /// Request queue which handles the execution of all started requests. It allows
+    /// to cancel a specific or all requests currently running. In addition it provides
+    /// events to listen for lifecycle events, like the completed event.
+    /// </summary>
+    /// <example>This queue uses the singleton pattern.</example>
+    /// <code>
+    /// //get the queue
+    /// var queue = RequestQueue.Instance;
+    /// 
+    /// //register lifecycle events
+    /// queue.Started += () => { /* show loading indicator */ }
+    /// queue.Completed += () => { /* hide loading indicator */ }
+    /// 
+    /// //create a request and execute to add it to queue,
+    /// //because the request enqueues itself when executing
+    /// var request = new ExampleRequest();
+    /// request.Execute();
+    /// 
+    /// //cancel a specific request
+    /// queue.Cancel(request);
+    /// 
+    /// //cancel all requests
+    /// queue.Cancel();
+    /// 
+    /// </code>
     public class RequestQueue
     {
         private static readonly Lazy<RequestQueue> Lazy = new Lazy<RequestQueue>(() => new RequestQueue());
         private readonly IntervalHeap<IRequest> _queue = new IntervalHeap<IRequest>(QueueCapacity, new PriorityComparer());
         private int _threadCount;
 
+        /// <summary>
+        /// Maximum number of requests in queue.
+        /// </summary>
         private const int QueueCapacity = 256;
         
         /// <summary>
@@ -34,17 +64,31 @@ namespace RequestWithLaz0rz
 
         #region event handler
 
+        /// <summary>
+        /// Event which is invoked whenever min
+        /// one request is started.
+        /// </summary>
         public event Action Started;
 
-        protected virtual void OnStarted()
+        /// <summary>
+        /// Invokes the started event
+        /// </summary>
+        private void OnStarted()
         {
             var handler = Started;
             if (handler != null) handler();
         }
 
+        /// <summary>
+        /// Event which is invoked whenever
+        /// all request are excuted.
+        /// </summary>
         public event Action Completed;
 
-        protected virtual void OnCompleted()
+        /// <summary>
+        /// Invokes the completed event
+        /// </summary>
+        private void OnCompleted()
         {
             var handler = Completed;
             if (handler != null) handler();
@@ -67,7 +111,7 @@ namespace RequestWithLaz0rz
                 if (_queue.IsEmpty) OnStarted();
 
                 _queue.Add(ref handle, request);
-                TryDequeueNext();
+                DequeueNext();
             }
         }
 
@@ -86,15 +130,16 @@ namespace RequestWithLaz0rz
                 //max number of running thrads reached
                 if (_threadCount.Equals(MaxThreads)) return false;
 
-                ++_threadCount; //TODO create thread-safe method to increment
+                Interlocked.Increment(ref _threadCount);
 
                 //get request with the highest priority
                 var request = _queue.DeleteMax();
 
                 request.Run(() =>
                 {
-                    --_threadCount; //TODO create thread-safe method to decrement
-                    TryDequeueNext();
+                    //on request completed
+                    Interlocked.Decrement(ref _threadCount);
+                    DequeueNext();
                 });
 
                 return false;
@@ -103,16 +148,27 @@ namespace RequestWithLaz0rz
 
         /// <summary>
         /// Tries to dequeue the next request. Whenever 
-        /// the queue is empty it invokes the onCompleted
+        /// the queue is empty it invokes the completed
         /// event.
         /// </summary>
-        private void TryDequeueNext()
+        private void DequeueNext()
         {
             lock (_queue)
             {
                 //invoke completed event
                 if (TryDequeue()) OnCompleted();
             }
+        }
+
+        /// <summary>
+        /// Cancels a specific request and removes
+        /// it from queue or cancels all requests
+        /// whenever no specific request is passed.
+        /// </summary>
+        /// <param name="request">The request to cancel or null to cancel all</param>
+        public void Cancel(IRequest request = null)
+        {
+            throw new NotImplementedException();
         }
     }
 
