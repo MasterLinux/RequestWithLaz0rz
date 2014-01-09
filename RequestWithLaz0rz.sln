@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestWithLaz0rz", "RequestWithLaz0rz\RequestWithLaz0rz.csproj", "{64B1BF59-B994-498D-BE5D-60604848E2E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestWithLaz0rz_Old", "RequestWithLaz0rz\RequestWithLaz0rz_Old.csproj", "{64B1BF59-B994-498D-BE5D-60604848E2E4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RequestWithLaz0rzTestApp", "RequestWithLaz0rzTestApp\RequestWithLaz0rzTestApp.csproj", "{E1F35F52-7B71-4FC3-A6DE-1ED3EAFF1F2D}"
 EndProject

@@ -1,4 +1,0 @@
-C:\Users\chris_000\Documents\Visual Studio 2012\Projects\RequestWithLaz0rz\RequestWithLaz0rz\RequestWithLaz0rz\Bin\Debug\RequestWithLaz0rz.dll
-C:\Users\chris_000\Documents\Visual Studio 2012\Projects\RequestWithLaz0rz\RequestWithLaz0rz\RequestWithLaz0rz\Bin\Debug\RequestWithLaz0rz.pdb
-C:\Users\chris_000\Documents\Visual Studio 2012\Projects\RequestWithLaz0rz\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.dll
-C:\Users\chris_000\Documents\Visual Studio 2012\Projects\RequestWithLaz0rz\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.pdb

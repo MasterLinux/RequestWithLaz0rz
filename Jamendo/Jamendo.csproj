@@ -152,9 +152,9 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\RequestWithLaz0rz\RequestWithLaz0rz.csproj">
+    <ProjectReference Include="..\RequestWithLaz0rz\RequestWithLaz0rz_Old.csproj">
       <Project>{64B1BF59-B994-498D-BE5D-60604848E2E4}</Project>
-      <Name>RequestWithLaz0rz</Name>
+      <Name>RequestWithLaz0rz_Old</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
