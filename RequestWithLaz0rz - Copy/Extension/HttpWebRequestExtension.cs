@@ -2,8 +2,6 @@
 using System.Linq;
 using System.Net;
 using RequestWithLaz0rz.Type;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace RequestWithLaz0rz.Extension
 {
@@ -21,26 +19,6 @@ namespace RequestWithLaz0rz.Extension
 
             foreach (var keyValue in header)
             {
-                //catch content type header
-                if (keyValue.Key.ToLower().Equals("content-type"))
-                {
-                    request.ContentType = keyValue.Value;
-                    continue;
-                } 
-                
-                if (keyValue.Key.ToLower().Equals("accept"))
-                {
-                    request.Accept = keyValue.Value;
-                    continue;
-                }
-  
-                /*
-                if (keyValue.Key.ToLower().Equals("user-agent"))
-                {
-                    request.UserAgent = keyValue.Value;
-                    continue;
-                }*/
-
                 request.Headers[keyValue.Key] = keyValue.Value;
             }
 
