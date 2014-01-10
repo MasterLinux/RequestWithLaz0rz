@@ -4,30 +4,23 @@ using RequestWithLaz0rz.Type;
 
 namespace Jamendo.Request
 {
-    public class TrackRequest2 : Request<TrackRequestModel>
+    public class ArtistsTracksRequest : BaseRequest<TrackRequestModel>
     {
-        public TrackRequest2(string clientId)
+        /// <summary>
+        /// Gets all tracks of a specific artist.
+        /// </summary>
+        /// <param name="artistName">The name of the artist</param>
+        public ArtistsTracksRequest(string artistName)
         {
-            AddParameter(new Parameter("client_id", clientId));
-            AddParameter(new Parameter("format", "json"));
+            
             AddParameter(new Parameter("name", "we+are+fm"));
             AddParameter(new Parameter("album_datebetween", "0000-00-00_2012-01-01"));
-        }
-
-        protected override string BaseUri
-        {
-            get { return "http://api.jamendo.com/v3.0/"; }
         }
 
         protected override string Path
         {
             get { return "artists/tracks"; }
-        }
-
-        protected override ContentType ContentType
-        {
-            get { return ContentType.Json; }
-        }
+        }       
 
         protected override HttpMethod HttpMethod
         {
@@ -36,7 +29,7 @@ namespace Jamendo.Request
 
         public override RequestPriority Priority
         {
-            get { return RequestPriority.Low; }
+            get { return RequestPriority.High; }
         }
     }
 }

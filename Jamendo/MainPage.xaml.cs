@@ -28,15 +28,12 @@ namespace Jamendo
         {
             base.OnNavigatedTo(e);
 
-            var request = new TrackRequest("b6747d04");
-            var request2 = new TrackRequest2("b6747d04");
-            var request3 = new TrackRequest2("b6747d04");
-            var request4 = new TrackRequest2("b6747d04");
+            var request = new ArtistsTracksRequest("we are fm");
 
-            request3.Execute();
+
+
             request.Execute();
-            request2.Execute();
-            request4.Execute();
+
         }
 
         // Sample code for building a localized ApplicationBar
