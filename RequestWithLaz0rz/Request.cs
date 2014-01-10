@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -18,6 +19,7 @@ namespace RequestWithLaz0rz
         private readonly Dictionary<string, string> _header = new Dictionary<string, string>();
         private readonly RequestQueue _queue = RequestQueue.Instance;
         private HttpWebRequest _request;
+        private string _body;
 
         #region event handler
 
@@ -215,6 +217,14 @@ namespace RequestWithLaz0rz
             return this;
         }
 
+        public Request<TResponse> SetBody(string body)
+        {
+            _body = body;
+            return this;
+        }
+
+        //TODO implement SetBody method for objects
+
         public IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
 
         public abstract RequestPriority Priority { get; }
@@ -235,60 +245,116 @@ namespace RequestWithLaz0rz
                     .AddHeader(_header)
                     .SetMethod(HttpMethod);
 
-                //start request
-                _request.BeginGetResponse(result =>
+                _request.BeginGetRequestStream(
+                    result_ =>
+                    {
+                        var request = (HttpWebRequest)result_.AsyncState;
+
+                        //end the stream request operation
+                        var stream = request.EndGetRequestStream(result_);
+
+                        // avoid bad-touching UI stuff
+                        var data = Encoding.UTF8.GetBytes(_body);
+
+                        stream.Write(data, 0, data.Length);
+
+
+                        //stream.Flush();
+                        //stream.Close();
+
+                        //get response
+                        request.BeginGetResponse(result =>
+                        {
+                            HttpWebResponse response;
+                            TResponse content;
+
+                            if (TryParseResponse(result, ContentType, out response, out content))
+                            {
+                                //TODO update arguments
+                                var args = new CompletedEventArgs<TResponse>
+                                {
+                                    Response = content,
+                                    StatusCode = response.StatusCode,
+                                    IsErrorOccured = false,
+                                    IsCached = false //TODO set dynamically
+                                };
+
+                                //response is valid
+                                if (OnValidation(args))
+                                {
+                                    OnCompleted(args);
+                                }
+
+                                //an error occurred
+                                else
+                                {
+                                    args.IsErrorOccured = true;
+                                    OnError(args);
+                                }
+                            }
+                            else
+                            {
+                                IsBusy = false;
+
+                                //invoke onCompleted handler
+                                if (onCompleted != null) onCompleted();
+
+                                //throw parse exception
+                                var actualContentType = response != null ? response.ContentType : "?";
+                                throw new ParseException(ContentType, actualContentType);
+                            }
+
+                            IsBusy = false;
+
+                            //invoke onCompleted handler
+                            if (onCompleted != null) onCompleted();
+
+                        }, request);
+                    }, 
+                    _request
+                );
+
+                /*
+                if (!string.IsNullOrEmpty(_body))
                 {
-                    HttpWebResponse response;
-                    TResponse content;
+                    _request.Co
+                }*/ 
 
-                    if (TryParseResponse(result, ContentType, out response, out content))
+                //new AsyncCallback(GetRequestStreamCallback)
+
+                /*
+                if (!string.IsNullOrEmpty(body))
+                {
+
+                }
+
+                byte[] data = Encoding.UTF8.GetBytes(body); //TODO find another solution
+
+                //request.ContentLength = data.Length; //TODO isn'T anymore required?
+
+                request.BeginGetRequestStream(result =>
+                {
+                    var stream = result as System.IO.Stream;
+
+                    if (stream != null)
                     {
-                        //TODO update arguments
-                        var args = new CompletedEventArgs<TResponse>
-                        {
-                            Response = content,
-                            StatusCode = response.StatusCode,
-                            IsErrorOccured = false,
-                            IsCached = false //TODO set dynamically
-                        };
-
-                        //response is valid
-                        if (OnValidation(args))
-                        {
-                            OnCompleted(args);
-                        }
-
-                        //an error occurred
-                        else
-                        {
-                            args.IsErrorOccured = true;
-                            OnError(args);
-                        }
-                    }
-                    else
-                    {
-                        IsBusy = false;
-
-                        //invoke onCompleted handler
-                        if (onCompleted != null) onCompleted();
-
-                        //throw parse exception
-                        var actualContentType = response != null ? response.ContentType : "?";
-                        throw new ParseException(ContentType, actualContentType);
+                        stream.Write(data, 0, data.Length);
                     }
 
-                    IsBusy = false;
+                }, request);*/
 
-                    //invoke onCompleted handler
-                    if (onCompleted != null) onCompleted();
-
-                }, _request);
+                
             }
             else
             {
                 //TODO throw error
                 IsBusy = false;
             }
+        }
+
+        private void OnResponseGot(IAsyncResult result)
+        {
+            
         }
      
         public Request<TResponse> Execute()
