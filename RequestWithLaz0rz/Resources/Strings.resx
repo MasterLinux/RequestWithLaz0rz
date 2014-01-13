@@ -118,6 +118,6 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Exception_Parse_Message" xml:space="preserve">
-    <value>Unable to parse response. Expected ContentType is "{0}" but response delivers "{1}".</value>
+    <value>Unable to parse response, caused by an exception thrown while parsing. See inner exception for more details.</value>
   </data>
 </root>

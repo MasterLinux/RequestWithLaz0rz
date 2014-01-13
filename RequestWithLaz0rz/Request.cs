@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using C5;
 using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
@@ -248,6 +246,11 @@ namespace RequestWithLaz0rz
 
         public abstract RequestPriority Priority { get; }
 
+        /// <summary>
+        /// Executes the request asynchroniously. This method
+        /// must not be used because it is for internally usage only
+        /// </summary>
+        /// <param name="onCompleted">Handler which is invoked when request is completed</param>
         public async void RunAsync(Action onCompleted)
         {
             if (IsBusy) return; //TODO throw exception? -> already running
@@ -279,13 +282,12 @@ namespace RequestWithLaz0rz
             if (response != null)
             {
                 var responseBody = await response.Content.ReadAsStreamAsync();
-                var test = await response.Content.ReadAsStringAsync();
 
                 TResponse result;
-                if (TryParseResponse(responseBody, ContentType, out result))
+                if (response.IsSuccessStatusCode && TryParseResponse(responseBody, ContentType, out result))
                 {                   
                     //TODO update arguments
-                    var args = new CompletedEventArgs<TResponse>
+                    var args = new CompletedEventArgs<TResponse>(response.Headers)
                     {
                         Response = result,
                         StatusCode = response.StatusCode,
@@ -306,18 +308,27 @@ namespace RequestWithLaz0rz
                         IsBusy = false;
                         args.IsErrorOccured = true;
                         OnError(args);
-                    }    
+                    }
+
+                    if (onCompleted != null) onCompleted();
                 }
                 else
                 {
                     IsBusy = false;
 
+                    //TODO update arguments -> add error message
+                    var args = new CompletedEventArgs<TResponse>(response.Headers)
+                    {
+                        Response = default(TResponse),
+                        StatusCode = response.StatusCode,
+                        IsErrorOccured = true,
+                        IsCached = false
+                    };
+
+                    OnError(args);                  
+
                     //invoke onCompleted handler
                     if (onCompleted != null) onCompleted();
-
-                    //throw parse exception
-                    //var actualContentType = responseBody != null ? responseBody.ContentType : "?";
-                    throw new ParseException(ContentType, "?"); //TODO optimize error message
                 }
             }
             else
@@ -364,16 +375,25 @@ namespace RequestWithLaz0rz
         {
             if (responseBody != null)
             {
-                switch (format)
+                //catch exception when content type 
+                //of the response isn't as expected
+                try
                 {
-                    case ContentType.Json:
-                        return new JsonSerializer<TResponse>().TryParse(responseBody, out result);
+                    switch (format)
+                    {
+                        case ContentType.Json:                            
+                            return new JsonSerializer<TResponse>().TryParse(responseBody, out result);
 
-                    case ContentType.Xml:
-                        return new XmlSerializer<TResponse>().TryParse(responseBody, out result);
+                        case ContentType.Xml:
+                            return new XmlSerializer<TResponse>().TryParse(responseBody, out result);
 
-                    case ContentType.Text:
-                        return new TextSerializer<TResponse>().TryParse(responseBody, out result);
+                        case ContentType.Text:
+                            return new TextSerializer<TResponse>().TryParse(responseBody, out result);
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    //TODO just log the exception    
                 }
             }
 

@@ -62,7 +62,7 @@ namespace RequestWithLaz0rz.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Unable to parse response. Expected ContentType is &quot;{0}&quot; but response delivers &quot;{1}&quot;..
+        ///   Looks up a localized string similar to Unable to parse response, caused by an exception thrown while parsing. See inner exception for more details..
         /// </summary>
         internal static string Exception_Parse_Message {
             get {

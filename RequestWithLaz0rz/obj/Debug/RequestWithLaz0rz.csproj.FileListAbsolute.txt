@@ -1,0 +1,11 @@
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.csprojResolveAssemblyReference.cache
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.Resources.Strings.resources
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.csproj.GenerateResource.Cache
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.dll
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.pdb
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\RequestWithLaz0rz.dll
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\RequestWithLaz0rz.pdb
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\C5.dll
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\Newtonsoft.Json.dll
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\C5.xml
+C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\Newtonsoft.Json.xml

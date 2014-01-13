@@ -5,13 +5,10 @@ namespace RequestWithLaz0rz.Exception
 {
     public class ParseException : System.Exception
     {
-        private readonly ContentType _expected;
-        private readonly string _actual;
-
-        public ParseException(ContentType expected, string actual)
+        public ParseException(System.Exception innerException)
+            : base(null, innerException)
         {
-            _expected = expected;
-            _actual = actual;
+
         }
 
         public override string Message
@@ -19,9 +16,7 @@ namespace RequestWithLaz0rz.Exception
             get
             {
                 return string.Format(
-                    Strings.Exception_Parse_Message, 
-                    _expected, 
-                    _actual
+                    Strings.Exception_Parse_Message
                 );
             }
         }

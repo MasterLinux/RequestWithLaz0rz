@@ -21,6 +21,6 @@ namespace RequestWithLaz0rz
         /// <summary>
         ///  Starts the request. This method must not be used directly.
         ///  </summary>
-        void RunAsync(Action onCompleted);
+        void RunAsync(Action onCompleted); //TODO make class abstract and use internal keyword
     }
 }
