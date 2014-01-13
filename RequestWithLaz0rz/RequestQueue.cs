@@ -68,7 +68,7 @@ namespace RequestWithLaz0rz
         /// Event which is invoked whenever min
         /// one request is started.
         /// </summary>
-        public event Action Started;
+        public event Action Started; //TODO possible that an event is added more than once, find solution
 
         /// <summary>
         /// Invokes the started event
@@ -135,7 +135,7 @@ namespace RequestWithLaz0rz
                 //get request with the highest priority
                 var request = _queue.DeleteMax();
 
-                request.Run(() =>
+                request.RunAsync(() =>
                 {
                     //on request completed
                     Interlocked.Decrement(ref _threadCount);

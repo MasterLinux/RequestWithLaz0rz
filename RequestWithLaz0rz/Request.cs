@@ -3,23 +3,26 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
 using C5;
 using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
 using RequestWithLaz0rz.Type;
+using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
     public abstract class Request<TResponse> : IRequest  
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _header = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _body = new Dictionary<string, string>();
         private readonly RequestQueue _queue = RequestQueue.Instance;
-        private HttpWebRequest _request;
-        private string _body;
+        private readonly HttpClient _client = new HttpClient();       
 
         #region event handler
 
@@ -79,6 +82,10 @@ namespace RequestWithLaz0rz
         {
             get;
         }
+
+        protected  string Accept { private get; set; }
+
+        protected string UserAgent { private get; set; }
 
         protected abstract ContentType ContentType
         {
@@ -208,18 +215,30 @@ namespace RequestWithLaz0rz
         public Request<TResponse> AddHeader(Header header)
         {
             //remove already existing parameter
-            if (_header.ContainsKey(header.Key))
+            if (_headers.ContainsKey(header.Key))
             {
-                _header.Remove(header.Key);
+                _headers.Remove(header.Key);
             }
 
-            _header.Add(header.Key, header.Value);
+            _headers.Add(header.Key, header.Value);
             return this;
         }
 
-        public Request<TResponse> SetBody(string body)
+        /// <summary>
+        /// Adds a key value pair to the body. If this method
+        /// is used the body is added as FormUrlEncodedContent
+        /// </summary>
+        /// <param name="key">The key of the parameter</param>
+        /// <param name="value">The value of the parameter</param>
+        /// <returns>This request</returns>
+        public Request<TResponse> AddBody(string key, string value)
         {
-            _body = body;
+            if (_body.ContainsKey(key))
+            {
+                _body.Remove(key);
+            }
+
+            _body.Add(key, value);
             return this;
         }
 
@@ -229,137 +248,93 @@ namespace RequestWithLaz0rz
 
         public abstract RequestPriority Priority { get; }
 
-        public void Run(Action onCompleted)
+        public async void RunAsync(Action onCompleted)
         {
-            if (IsBusy) return;
+            if (IsBusy) return; //TODO throw exception? -> already running
             IsBusy = true;
 
-            //create request
-            _request = WebRequest.Create(Uri) as HttpWebRequest;
+            //configure client
+            _client
+                .SetAcceptHeader(Accept)
+                .SetUserAgent(UserAgent)
+                .AddHeaders(_headers);
 
-            if (_request != null)
+            HttpResponseMessage response = null;
+
+            switch (HttpMethod)
             {
-                //TODO check whether the request is updated
-                //configure request
-                _request
-                    .AddHeader(_header)
-                    .SetMethod(HttpMethod);
+                case HttpMethod.GET:
+                    response = await _client.GetAsync(Uri);
+                    break;
+                case HttpMethod.POST:
+                    var content = new FormUrlEncodedContent(_body);
+                    response = await _client.PostAsync(Uri, content);
+                    break;
+                    //TODO add all method implementations
+                default:
+                    //TODO throw exception
+                    break;
+            }
 
-                _request.BeginGetRequestStream(
-                    result_ =>
+            if (response != null)
+            {
+                var responseBody = await response.Content.ReadAsStreamAsync();
+                var test = await response.Content.ReadAsStringAsync();
+
+                TResponse result;
+                if (TryParseResponse(responseBody, ContentType, out result))
+                {                   
+                    //TODO update arguments
+                    var args = new CompletedEventArgs<TResponse>
                     {
-                        var request = (HttpWebRequest)result_.AsyncState;
+                        Response = result,
+                        StatusCode = response.StatusCode,
+                        IsErrorOccured = false,
+                        IsCached = false //TODO set dynamically
+                    };
 
-                        //end the stream request operation
-                        var stream = request.EndGetRequestStream(result_);
-
-                        // avoid bad-touching UI stuff
-                        var data = Encoding.UTF8.GetBytes(_body);
-
-                        stream.Write(data, 0, data.Length);
-
-
-                        //stream.Flush();
-                        //stream.Close();
-
-                        //get response
-                        request.BeginGetResponse(result =>
-                        {
-                            HttpWebResponse response;
-                            TResponse content;
-
-                            if (TryParseResponse(result, ContentType, out response, out content))
-                            {
-                                //TODO update arguments
-                                var args = new CompletedEventArgs<TResponse>
-                                {
-                                    Response = content,
-                                    StatusCode = response.StatusCode,
-                                    IsErrorOccured = false,
-                                    IsCached = false //TODO set dynamically
-                                };
-
-                                //response is valid
-                                if (OnValidation(args))
-                                {
-                                    OnCompleted(args);
-                                }
-
-                                //an error occurred
-                                else
-                                {
-                                    args.IsErrorOccured = true;
-                                    OnError(args);
-                                }
-                            }
-                            else
-                            {
-                                IsBusy = false;
-
-                                //invoke onCompleted handler
-                                if (onCompleted != null) onCompleted();
-
-                                //throw parse exception
-                                var actualContentType = response != null ? response.ContentType : "?";
-                                throw new ParseException(ContentType, actualContentType);
-                            }
-
-                            IsBusy = false;
-
-                            //invoke onCompleted handler
-                            if (onCompleted != null) onCompleted();
-
-                        }, request);
-                    }, 
-                    _request
-                );
-
-                /*
-                if (!string.IsNullOrEmpty(_body))
-                {
-                    _request.Co
-                }*/ 
-
-                //new AsyncCallback(GetRequestStreamCallback)
-
-                /*
-                if (!string.IsNullOrEmpty(body))
-                {
-
-                }
-
-                byte[] data = Encoding.UTF8.GetBytes(body); //TODO find another solution
-
-                //request.ContentLength = data.Length; //TODO isn'T anymore required?
-
-                request.BeginGetRequestStream(result =>
-                {
-                    var stream = result as System.IO.Stream;
-
-                    if (stream != null)
+                    //response is valid
+                    if (OnValidation(args))
                     {
-                        stream.Write(data, 0, data.Length);
+                        IsBusy = false;
+                        OnCompleted(args);
                     }
 
-                }, request);*/
+                    //an error occurred
+                    else
+                    {
+                        IsBusy = false;
+                        args.IsErrorOccured = true;
+                        OnError(args);
+                    }    
+                }
+                else
+                {
+                    IsBusy = false;
 
-                
+                    //invoke onCompleted handler
+                    if (onCompleted != null) onCompleted();
+
+                    //throw parse exception
+                    //var actualContentType = responseBody != null ? responseBody.ContentType : "?";
+                    throw new ParseException(ContentType, "?"); //TODO optimize error message
+                }
             }
             else
             {
-                //TODO throw error
                 IsBusy = false;
+                //TODO invoke error
             }
         }
-
-        private void OnResponseGot(IAsyncResult result)
-        {
-            
-        }
      
+        /// <summary>
+        /// Adds the request into request queue and
+        /// executes  
+        /// </summary>
+        /// <returns></returns>
         public Request<TResponse> Execute()
         {
-            if (IsBusy) return this;
+            if (IsBusy) return this; //TODO throw exception?
 
             IPriorityQueueHandle<IRequest> handle = null;
             
@@ -374,8 +349,8 @@ namespace RequestWithLaz0rz
         
         public Request<TResponse> Abort()
         {
-            if (!IsBusy || _request == null) return this;
-            _request.Abort();
+            if (!IsBusy || _client == null) return this;
+            _client.CancelPendingRequests(); //TODO check whether this is the correct method
             IsBusy = false;
 
             return this;
@@ -385,44 +360,24 @@ namespace RequestWithLaz0rz
         /// Tries to parse the response
         /// </summary>
         /// <returns>Whether the response could be parsed</returns>
-        private static bool TryParseResponse(IAsyncResult result, ContentType format, out HttpWebResponse response, out TResponse content)
+        private static bool TryParseResponse(Stream responseBody, ContentType format, out TResponse result)
         {
-            var request = result.AsyncState as HttpWebRequest;
-
-            if (request != null)
+            if (responseBody != null)
             {
-                try
+                switch (format)
                 {
-                    response = request.EndGetResponse(result) as HttpWebResponse;
+                    case ContentType.Json:
+                        return new JsonSerializer<TResponse>().TryParse(responseBody, out result);
 
-                    if (response != null)
-                    {
-                        switch (format)
-                        {
-                            case ContentType.Json:
-                                return new JsonSerializer<TResponse>().TryParse(response, out content);
+                    case ContentType.Xml:
+                        return new XmlSerializer<TResponse>().TryParse(responseBody, out result);
 
-                            case ContentType.Xml:
-                                return new XmlSerializer<TResponse>().TryParse(response, out content);
-
-                            case ContentType.Text:
-                                return new TextSerializer<TResponse>().TryParse(response, out content);
-
-                        }
-                    }
-                }
-                catch (WebException exception)
-                {
-                    response = exception.Response as HttpWebResponse;
-
-                    if(response != null) {
-                        //TODO parse response and throw error
-                    }
+                    case ContentType.Text:
+                        return new TextSerializer<TResponse>().TryParse(responseBody, out result);
                 }
             }
 
-            response = null;
-            content = default(TResponse);
+            result = default(TResponse);
             return false;
         }
 
