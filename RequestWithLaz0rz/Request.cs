@@ -4,6 +4,8 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using C5;
 using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
@@ -18,9 +20,11 @@ namespace RequestWithLaz0rz
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _body = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> _body = new Dictionary<string, string>();      
         private readonly RequestQueue _queue = RequestQueue.Instance;
-        private readonly HttpClient _client = new HttpClient();       
+        private readonly HttpClient _client = new HttpClient();
+        private SemaphoreSlim _completedSignal;
+        private CompletedEventArgs<TResponse> _completedEventArgs;
 
         #region event handler
 
@@ -262,6 +266,7 @@ namespace RequestWithLaz0rz
                 .SetUserAgent(UserAgent)
                 .AddHeaders(_headers);
 
+            FormUrlEncodedContent content = null;
             HttpResponseMessage response = null;
 
             switch (HttpMethod)
@@ -269,11 +274,37 @@ namespace RequestWithLaz0rz
                 case HttpMethod.GET:
                     response = await _client.GetAsync(Uri);
                     break;
+
+                case HttpMethod.HEAD:
+                    //TODO implement
+                    break;
+
+                case HttpMethod.DELETE:
+                    response = await _client.DeleteAsync(Uri);
+                    break;
+
+                case HttpMethod.PATCH:
+                    //TODO implement
+                    break;
+
+                case HttpMethod.UPDATE:
+                    //TODO implement
+                    break;
+
+                case HttpMethod.OPTIONS:
+                    //TODO implement
+                    break;
+
                 case HttpMethod.POST:
-                    var content = new FormUrlEncodedContent(_body);
+                    content = new FormUrlEncodedContent(_body);
                     response = await _client.PostAsync(Uri, content);
                     break;
-                    //TODO add all method implementations
+
+                case HttpMethod.PUT:
+                    content = new FormUrlEncodedContent(_body);
+                    response = await _client.PutAsync(Uri, content);
+                    break;
+
                 default:
                     //TODO throw exception
                     break;
@@ -287,7 +318,7 @@ namespace RequestWithLaz0rz
                 if (response.IsSuccessStatusCode && TryParseResponse(responseBody, ContentType, out result))
                 {                   
                     //TODO update arguments
-                    var args = new CompletedEventArgs<TResponse>(response.Headers)
+                    _completedEventArgs = new CompletedEventArgs<TResponse>(response.Headers)
                     {
                         Response = result,
                         StatusCode = response.StatusCode,
@@ -296,18 +327,18 @@ namespace RequestWithLaz0rz
                     };
 
                     //response is valid
-                    if (OnValidation(args))
+                    if (OnValidation(_completedEventArgs))
                     {
                         IsBusy = false;
-                        OnCompleted(args);
+                        OnCompleted(_completedEventArgs);
                     }
 
                     //an error occurred
                     else
                     {
                         IsBusy = false;
-                        args.IsErrorOccured = true;
-                        OnError(args);
+                        _completedEventArgs.IsErrorOccured = true;
+                        OnError(_completedEventArgs);
                     }
 
                     if (onCompleted != null) onCompleted();
@@ -317,7 +348,7 @@ namespace RequestWithLaz0rz
                     IsBusy = false;
 
                     //TODO update arguments -> add error message
-                    var args = new CompletedEventArgs<TResponse>(response.Headers)
+                    _completedEventArgs = new CompletedEventArgs<TResponse>(response.Headers)
                     {
                         Response = default(TResponse),
                         StatusCode = response.StatusCode,
@@ -325,7 +356,7 @@ namespace RequestWithLaz0rz
                         IsCached = false
                     };
 
-                    OnError(args);                  
+                    OnError(_completedEventArgs);                  
 
                     //invoke onCompleted handler
                     if (onCompleted != null) onCompleted();
@@ -336,25 +367,37 @@ namespace RequestWithLaz0rz
                 IsBusy = false;
                 //TODO invoke error
             }
+
+            IsBusy = false;
+
+            //release completed signal to finish GetResponseAsync method
+            _completedSignal.Release();           
         }
-     
+
         /// <summary>
         /// Adds the request into request queue and
         /// executes  
         /// </summary>
         /// <returns></returns>
-        public Request<TResponse> Execute()
+        public async Task<CompletedEventArgs<TResponse>> GetResponseAsync()
         {
-            if (IsBusy) return this; //TODO throw exception?
+            if (!IsBusy) {
 
-            IPriorityQueueHandle<IRequest> handle = null;
-            
-            //add to queue
-            _queue.Enqueue(ref handle, this);
+                //initialize signal to wait for
+                _completedSignal = new SemaphoreSlim(0, 1);
 
-            QueueHandle = handle;
+                IPriorityQueueHandle<IRequest> handle = null;
 
-            return this;
+                //add to queue
+                _queue.Enqueue(ref handle, this);
+
+                QueueHandle = handle;
+            }
+
+            //wait for completed event to continue
+            await _completedSignal.WaitAsync();
+
+            return _completedEventArgs;
         }
 
         
