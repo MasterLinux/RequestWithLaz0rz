@@ -45,7 +45,6 @@
     <Compile Include="Extension\RequestPriorityExtension.cs" />
     <Compile Include="Handler\CompletedHandler.cs" />
     <Compile Include="Handler\ValidationHandler.cs" />
-    <Compile Include="Header.cs" />
     <Compile Include="IRequest.cs" />
     <Compile Include="Parameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

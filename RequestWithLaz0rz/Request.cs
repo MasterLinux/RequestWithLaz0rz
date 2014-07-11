@@ -81,7 +81,7 @@ namespace RequestWithLaz0rz
             get;
         }
 
-        protected  string Accept { private get; set; }
+        protected string Accept { private get; set; }
 
         protected string UserAgent { private get; set; }
 
@@ -210,7 +210,7 @@ namespace RequestWithLaz0rz
             return this;
         }
 
-        public Request<TResponse> AddHeader(Header header)
+        public Request<TResponse> AddHeader(Parameter header)
         {
             //remove already existing parameter
             if (_headers.ContainsKey(header.Key))

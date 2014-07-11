@@ -3,6 +3,8 @@
     <AssemblyPart x:Name="Jamendo" Source="Jamendo.dll" />
     <AssemblyPart x:Name="Newtonsoft.Json" Source="Newtonsoft.Json.dll" />
     <AssemblyPart x:Name="RequestWithLaz0rz" Source="RequestWithLaz0rz.dll" />
+    <AssemblyPart x:Name="System.Net.Http" Source="System.Net.Http.dll" />
     <AssemblyPart x:Name="C5" Source="C5.dll" />
+    <AssemblyPart x:Name="System.Net.Http.Primitives" Source="System.Net.Http.Primitives.dll" />
   </Deployment.Parts>
 </Deployment>
