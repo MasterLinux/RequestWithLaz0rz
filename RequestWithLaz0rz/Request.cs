@@ -197,8 +197,8 @@ namespace RequestWithLaz0rz
         }     
  
         /// <summary>
-        /// Adds a new parameter. When a parameter with the same key
-        /// already exists it will be overridden.
+        /// Adds a new parameter. An already existing 
+        /// parameter will be overridden.
         /// </summary>
         /// <param name="parameter">The parameter to add</param>
         /// <returns>This request</returns>
@@ -214,6 +214,12 @@ namespace RequestWithLaz0rz
             return this;
         }
 
+        /// <summary>
+        /// Adds a new header. An already existing 
+        /// header will be overridden.
+        /// </summary>
+        /// <param name="header">The header to add</param>
+        /// <returns>This request</returns>
         public Request<TResponse> AddHeader(Parameter header)
         {
             //remove already existing parameter

@@ -32,7 +32,10 @@ namespace Jamendo
 
 
 
-            request.Execute();
+            request.RunAsync(() =>
+            {
+                
+            });
 
         }
 
