@@ -66,5 +66,21 @@ namespace RequestWithLaz0rz.Handler
             value =_headers.GetValues(key).FirstOrDefault();
             return !string.IsNullOrEmpty(value);
         }
+
+        /// <summary>
+        /// Gets a specific header or null if not exists
+        /// </summary>
+        /// <param name="key">The key of the required header</param>
+        /// <returns>The header value or null</returns>
+        public string GetHeader(string key)
+        {
+            string value;
+            if (TryGetHeader(key, out value))
+            {
+                return value;
+            }
+
+            return null;
+        }
     }
 }

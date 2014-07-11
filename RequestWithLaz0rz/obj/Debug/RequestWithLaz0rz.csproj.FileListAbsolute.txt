@@ -9,11 +9,22 @@ C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\Newtonsoft.Json.dll
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\C5.xml
 C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\Newtonsoft.Json.xml
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\RequestWithLaz0rz.dll.config
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.dll
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Extensions.dll
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Primitives.dll
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.xml
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Extensions.xml
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Primitives.xml
-C:\Users\Christoph\Documents\Development\C#\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.csproj.App.config
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\RequestWithLaz0rz.dll.config
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\RequestWithLaz0rz.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\RequestWithLaz0rz.pdb
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\C5.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\Newtonsoft.Json.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Extensions.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Primitives.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\C5.xml
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\Newtonsoft.Json.xml
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.xml
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Extensions.xml
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\bin\Debug\System.Net.Http.Primitives.xml
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.csproj.App.config
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.csprojResolveAssemblyReference.cache
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.Resources.Strings.resources
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.csproj.GenerateResource.Cache
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.dll
+C:\Users\chris_000\Documents\Visual Studio 2012\Projects\Pro7-Ampya-WP\src\RequestWithLaz0rz\RequestWithLaz0rz\obj\Debug\RequestWithLaz0rz.pdb

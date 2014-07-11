@@ -22,7 +22,7 @@ namespace RequestWithLaz0rz
     /// //create a request and execute to add it to queue,
     /// //because the request enqueues itself when executing
     /// var request = new ExampleRequest();
-    /// request.Execute();
+    /// request.GetResponseAsync();
     /// 
     /// //cancel a specific request
     /// queue.Cancel(request);
