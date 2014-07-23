@@ -1,6 +1,11 @@
 RequestWithLaz0rz
 =================
 
+#Dependencies
+* Json.NET
+* Microsoft HTTP Client Libraries
+* C5 - PriorityQueue (will be replaced by an own implementation)
+
 #How to use
 Firstly you should implement a `BaseRequest` for the API you will access, so each request in your application can inherit from it.
 
