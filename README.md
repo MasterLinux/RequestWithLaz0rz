@@ -2,7 +2,7 @@ RequestWithLaz0rz
 =================
 
 #Dependencies
-* Json.NET
+* Json.NET (Shouldn't be a hard dependency, an abstract implementation of a XML and JSON parser is the way to go)
 * Microsoft HTTP Client Libraries
 * C5 - PriorityQueue (will be replaced by an own implementation)
 
