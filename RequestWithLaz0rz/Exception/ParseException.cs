@@ -1,5 +1,4 @@
-﻿using RequestWithLaz0rz.Resources;
-using RequestWithLaz0rz.Type;
+﻿using RequestWithLaz0rz.Type;
 
 namespace RequestWithLaz0rz.Exception
 {
@@ -15,9 +14,7 @@ namespace RequestWithLaz0rz.Exception
         {
             get
             {
-                return string.Format(
-                    Strings.Exception_Parse_Message
-                );
+                return "Unable to parse"; //TODO optimize exception message
             }
         }
     }
