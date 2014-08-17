@@ -38,7 +38,7 @@
     <TargetPlatform Include="Windows, Version=8.1" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Data\Queue.cs" />
+    <Compile Include="Data\RequestQueue.cs" />
     <Compile Include="Exception\ParseException.cs" />
     <Compile Include="Extension\HttpClientExtensions.cs" />
     <Compile Include="Extension\RequestPriorityExtension.cs" />

@@ -166,12 +166,12 @@ namespace RequestWithLaz0rz
         /// <summary>
         /// Tries to build the URL query
         /// </summary>
-        /// <param name="paramDict">Dictionary of parameter</param>
-        /// <param name="query">The required query or null if no parameter added</param>
+        /// <param name="paramDict">Dictionary of KeyValuePair</param>
+        /// <param name="query">The required query or null if no KeyValuePair added</param>
         /// <returns></returns>
         private static bool TryBuildQuery(IReadOnlyCollection<System.Collections.Generic.KeyValuePair<string, string>> paramDict, out string query)  
         {
-            //does nothing if no parameter are added
+            //does nothing if no KeyValuePair are added
             if (!paramDict.Any())
             {
                 query = null;
@@ -200,17 +200,17 @@ namespace RequestWithLaz0rz
         /// Adds a new parameter. An already existing 
         /// parameter will be overridden.
         /// </summary>
-        /// <param name="parameter">The parameter to add</param>
+        /// <param name="keyValuePair">The KeyValuePair to add</param>
         /// <returns>This request</returns>
-        public Request<TResponse> AddParameter(Parameter parameter)
+        public Request<TResponse> AddParameter(KeyValuePair keyValuePair)
         {
-            //remove already existing parameter
-            if (_parameter.ContainsKey(parameter.Key))
+            //remove already existing KeyValuePair
+            if (_parameter.ContainsKey(keyValuePair.Key))
             {
-                _parameter.Remove(parameter.Key);
+                _parameter.Remove(keyValuePair.Key);
             }
 
-            _parameter.Add(parameter.Key, parameter.Value);
+            _parameter.Add(keyValuePair.Key, keyValuePair.Value);
             return this;
         }
 
@@ -220,9 +220,9 @@ namespace RequestWithLaz0rz
         /// </summary>
         /// <param name="header">The header to add</param>
         /// <returns>This request</returns>
-        public Request<TResponse> AddHeader(Parameter header)
+        public Request<TResponse> AddHeader(KeyValuePair header)
         {
-            //remove already existing parameter
+            //remove already existing KeyValuePair
             if (_headers.ContainsKey(header.Key))
             {
                 _headers.Remove(header.Key);
@@ -236,17 +236,16 @@ namespace RequestWithLaz0rz
         /// Adds a key value pair to the body. If this method
         /// is used the body is added as FormUrlEncodedContent
         /// </summary>
-        /// <param name="key">The key of the parameter</param>
-        /// <param name="value">The value of the parameter</param>
+        /// <param name="body">The body to add</param>
         /// <returns>This request</returns>
-        public Request<TResponse> AddBody(string key, string value)
+        public Request<TResponse> AddBody(KeyValuePair body)
         {
-            if (_body.ContainsKey(key))
+            if (_body.ContainsKey(body.Key))
             {
-                _body.Remove(key);
+                _body.Remove(body.Key);
             }
 
-            _body.Add(key, value);
+            _body.Add(body.Key, body.Value);
             return this;
         }
 
