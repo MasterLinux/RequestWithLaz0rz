@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Threading;
 
 namespace RequestWithLaz0rz.Data
@@ -7,10 +6,10 @@ namespace RequestWithLaz0rz.Data
     /// <summary>
     /// Implementation of a priortiy queue
     /// </summary>
-    public class PriorityQueue<TItem> where TItem : class, new() 
+    public class PriorityQueue<TItem> where TItem : class, IComparable<TItem>, new() 
     {
-        private readonly IComparable<TItem>[] _heap;
-        private int _size;
+        private readonly TItem[] _heap;
+        private int _count;
 
         public const int DefaultCapacity = 20;
 
@@ -20,15 +19,22 @@ namespace RequestWithLaz0rz.Data
         /// <param name="capacity">Initial capacity</param>
         public PriorityQueue(int capacity = DefaultCapacity)
         {
-            _heap = new IComparable<TItem>[capacity + 1];
+            _heap = new TItem[capacity + 1];
+            Capacity = capacity;
+            _count = 0;
         }
+
+        /// <summary>
+        /// Gets the maximum number of items to add
+        /// </summary>
+        public int Capacity { get; private set; }
 
         /// <summary>
         /// Gets the number of inserted items in this queue
         /// </summary>
-        public int Size
+        public int Count
         {
-            get { return _size; }
+            get { return _count; }
         }
 
         /// <summary>
@@ -36,7 +42,7 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         public bool IsEmpty
         {
-            get { return Size == 0; }
+            get { return Count == 0; }
         }
 
         /// <summary>
@@ -44,13 +50,13 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         public bool IsNotEmpty
         {
-            get { return Size > 0; }
+            get { return Count > 0; }
         }
 
         /// <summary>
         /// Gets the item with the highest priority
         /// </summary>
-        public IComparable<TItem> Max
+        public TItem Max
         {
             get
             {
@@ -62,11 +68,11 @@ namespace RequestWithLaz0rz.Data
         /// Adds a new item to the queue
         /// </summary>
         /// <param name="comparable">The item to add</param>
-        public void Insert(IComparable<TItem> comparable)
+        public void Insert(TItem comparable)
         {
-            var idx = Size + 1;
+            var idx = Count + 1;
             _heap[idx] = comparable;
-            Interlocked.Increment(ref _size);
+            Interlocked.Increment(ref _count);
             Swim(idx);
         }
 
@@ -74,33 +80,56 @@ namespace RequestWithLaz0rz.Data
         /// Gets and removes the item with the highest priority
         /// </summary>
         /// <returns>The item with the highest priority</returns>
-        public IComparable<TItem> DelMax()
+        public TItem DeleteMax()
         {
-            return null;
+            var item = Max;
+            Swap(1, Count);
+            _heap[Count] = null;
+            Interlocked.Decrement(ref _count);
+            Sink(1);
+
+            return item;
         }
 
         private void Sink(int i)
         {
-            
+            //i = parent
+            while (2 * i <= Count)
+            {
+                var childIdx = 2 * i;
+
+                if (childIdx < Count && IsLess(childIdx, childIdx + 1))
+                {
+                    childIdx++;
+                }
+
+                if (!IsLess(i, childIdx))
+                {
+                    break;
+                }
+
+                Swap(i, childIdx);
+                i = childIdx;
+            }
         }
 
         private void Swim(int i)
         {
-            while (i > 1 && IsLess(i, i / 2))
+            while (i > 1 && IsLess(i / 2, i))
             {
                 Swap(i, i / 2);
                 i = i / 2;
             }           
         }
 
-        private bool IsLess(int childIndex, int parentIndex)
+        private bool IsLess(int left, int right)
         {
             //TODO if comparable func exists use this instead of the default one
 
-            var parent = _heap[parentIndex];
-            var child = _heap[childIndex];
+            var rightItem = _heap[right];
+            var leftItem = _heap[left];
 
-            return parent.CompareTo(child as TItem) < 0;
+            return leftItem.CompareTo(rightItem) < 0;
         }
 
         private void Swap(int i, int j)

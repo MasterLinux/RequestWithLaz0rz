@@ -26,7 +26,7 @@ namespace RequestWithLaz0rzTest
         public void TestInsertItem()
         {
             var expectedSize = 0;
-            var actualSize = _queue.Size;
+            var actualSize = _queue.Count;
 
             //check whether queue is empty
             Assert.AreEqual(expectedSize, actualSize, "PriortyQueue is not empty");
@@ -37,7 +37,7 @@ namespace RequestWithLaz0rzTest
             _queue.Insert(new ItemMock(2, "b"));
             _queue.Insert(new ItemMock(3, "c"));
             expectedSize = 3;
-            actualSize = _queue.Size;
+            actualSize = _queue.Count;
 
             //check whether all items are added
             Assert.AreEqual(expectedSize, actualSize, "No item added to priority queue");
@@ -71,7 +71,44 @@ namespace RequestWithLaz0rzTest
         [TestMethod]
         public void TestGetAndRemoveItemWithHighestPriority()
         {
+            var expectedItem1 = new ItemMock(1, "a");
+            var expectedItem2 = new ItemMock(2, "b");
+            var expectedItem3 = new ItemMock(3, "c");
+            var expectedItem4 = new ItemMock(4, "d");
+            var expectedItem5 = new ItemMock(5, "e");
+            var expectedItem6 = new ItemMock(6, "f");
+            var expectedItem7 = new ItemMock(7, "g");
 
+            _queue.Insert(expectedItem6);
+            _queue.Insert(expectedItem2);
+            _queue.Insert(expectedItem4);
+            _queue.Insert(expectedItem7);
+            _queue.Insert(expectedItem5);
+            _queue.Insert(expectedItem3);
+            _queue.Insert(expectedItem1);
+
+            var actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem7, actualItem);
+
+            actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem6, actualItem);
+
+            actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem5, actualItem);
+
+            actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem4, actualItem);
+
+            actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem3, actualItem);
+
+            actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem2, actualItem);
+
+            actualItem = _queue.DeleteMax();
+            Assert.AreEqual(expectedItem1, actualItem);
+
+            Assert.IsTrue(_queue.IsEmpty);
         }
 
         public class ItemMock : IComparable<ItemMock>
@@ -90,19 +127,9 @@ namespace RequestWithLaz0rzTest
 
             public string Value { get; private set; }
 
-            public int CompareTo(ItemMock item)
+            public int CompareTo(ItemMock another)
             {
-                if (Priority > item.Priority)
-                {
-                    return 1;
-                } 
-                
-                if (Priority < item.Priority)
-                {
-                    return -1;
-                }
-
-                return 0;
+                return Priority - another.Priority;
             }
         }
     }
