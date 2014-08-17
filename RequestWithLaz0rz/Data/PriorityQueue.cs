@@ -27,7 +27,7 @@ namespace RequestWithLaz0rz.Data
         /// <summary>
         /// Gets the maximum number of items to add
         /// </summary>
-        public int Capacity { get; private set; }
+        public int Capacity { get; private set; } //TODO resize of max capacity is reached? 
 
         /// <summary>
         /// Gets the number of inserted items in this queue

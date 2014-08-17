@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RequestWithLaz0rz.Data;
-using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
@@ -16,7 +15,7 @@ using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
-    public abstract class Request<TResponse> : IRequest  
+    public abstract class Request<TResponse> : IPriorityRequest 
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
@@ -256,11 +255,10 @@ namespace RequestWithLaz0rz
         public abstract RequestPriority Priority { get; }
 
         /// <summary>
-        /// Executes the request asynchroniously. This method
-        /// must not be used because it is for internally usage only
+        /// Executes the request asynchroniously
         /// </summary>
         /// <param name="onCompleted">Handler which is invoked when request is completed</param>
-        public async void RunAsync(Action onCompleted)
+        internal async void RunAsync(Action onCompleted)
         {
             if (IsBusy) return; //TODO throw exception? -> already running
             IsBusy = true;
@@ -454,7 +452,7 @@ namespace RequestWithLaz0rz
         /// </summary>
         /// <param name="other">The other request to compare with</param>
         /// <returns>Returns whether the priority of this request is higher than the one of the other request</returns>
-        public int CompareTo(IRequest other)
+        public int CompareTo(IPriorityRequest other)
         {
             return Priority.Compare(other.Priority);
         }
