@@ -21,8 +21,8 @@ namespace YourApp.Request
         // required by each request
         protected BaseRequest()
         {
-            AddParameter(new Parameter("client_id", ClientId));
-            AddParameter(new Parameter("format", "json"));
+            AddParameter(new KeyValuePair("client_id", ClientId));
+            AddParameter(new KeyValuePair("format", "json"));
         }
 
         // set the base URL which points to your API
