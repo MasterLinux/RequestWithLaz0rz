@@ -1,5 +1,4 @@
 ﻿using System;
-using C5;
 
 namespace RequestWithLaz0rz
 {
@@ -9,7 +8,7 @@ namespace RequestWithLaz0rz
         /// Queue handle which is used to get a specific request
         /// from queue. This getter must not be used directly. 
         /// </summary>
-        IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
+        //IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
 
         /// <summary>
         /// Gets the execution priority. A request with a higher

@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using C5;
+using RequestWithLaz0rz.Data;
 using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
@@ -20,8 +20,8 @@ namespace RequestWithLaz0rz
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _body = new Dictionary<string, string>();      
-        private readonly RequestQueue _queue = RequestQueue.Instance;
+        private readonly Dictionary<string, string> _body = new Dictionary<string, string>();
+        private readonly RequestQueue _queue; // = RequestQueue.Instance;
         private readonly HttpClient _client = new HttpClient();
         private SemaphoreSlim _completedSignal;
         private CompletedEventArgs<TResponse> _completedEventArgs;
@@ -251,7 +251,7 @@ namespace RequestWithLaz0rz
 
         //TODO implement SetBody method for objects
 
-        public IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
+        //public IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
 
         public abstract RequestPriority Priority { get; }
 
@@ -391,12 +391,12 @@ namespace RequestWithLaz0rz
                 //initialize signal to wait for
                 _completedSignal = new SemaphoreSlim(0, 1);
 
-                IPriorityQueueHandle<IRequest> handle = null;
+                //IPriorityQueueHandle<IRequest> handle = null;
 
                 //add to queue
-                _queue.Enqueue(ref handle, this);
+               // _queue.Enqueue(ref handle, this);
 
-                QueueHandle = handle;
+                //QueueHandle = handle;
             }
 
             //wait for completed event to continue
