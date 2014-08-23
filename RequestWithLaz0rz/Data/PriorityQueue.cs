@@ -8,26 +8,19 @@ namespace RequestWithLaz0rz.Data
     /// </summary>
     public class PriorityQueue<TItem> where TItem : class, IComparable<TItem>, new() 
     {
-        private readonly TItem[] _heap;
+        private TItem[] _heap;
         private int _count;
 
-        public const int DefaultCapacity = 20;
+        private const int InitialCapacity = 10;
 
         /// <summary>
         /// Initializes the queue
         /// </summary>
-        /// <param name="capacity">Initial capacity</param>
-        public PriorityQueue(int capacity = DefaultCapacity)
+        public PriorityQueue()
         {
-            _heap = new TItem[capacity + 1];
-            Capacity = capacity;
+            _heap = new TItem[InitialCapacity + 1];
             _count = 0;
         }
-
-        /// <summary>
-        /// Gets the maximum number of items to add
-        /// </summary>
-        public int Capacity { get; private set; } //TODO resize of max capacity is reached? 
 
         /// <summary>
         /// Gets the number of inserted items in this queue
@@ -70,6 +63,12 @@ namespace RequestWithLaz0rz.Data
         /// <param name="comparable">The item to add</param>
         public void Insert(TItem comparable)
         {
+            //increment size if max array capacity is reached
+            if (Count + 1 == _heap.Length)
+            {
+                Array.Resize(ref _heap, _heap.Length + InitialCapacity);    
+            }
+
             var idx = Count + 1;
             _heap[idx] = comparable;
             Interlocked.Increment(ref _count);

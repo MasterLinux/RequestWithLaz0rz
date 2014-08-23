@@ -7,13 +7,13 @@ namespace RequestWithLaz0rzTest
     [TestClass]
     public class PriorityQueueTest
     {
-        public const int InitalCapacity = 10;
+        public const int InitalCapacity = 2;
         private PriorityQueue<ItemMock> _queue;
 
         [TestInitialize]
         public void InitializeTest()
         {
-            _queue = new PriorityQueue<ItemMock>(InitalCapacity);
+            _queue = new PriorityQueue<ItemMock>();
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace RequestWithLaz0rzTest
             _queue.Insert(new ItemMock(4, "c"));
             _queue.Insert(new ItemMock(0, "c"));
 
-            var actualItem = _queue.Max as ItemMock;
+            var actualItem = _queue.Max;
 
             Assert.IsNotNull(actualItem, "Required item is null");
             Assert.AreEqual(expectedItem, actualItem, "Actual item <prio: {0}, val: {1}> is not equal to the expected one <prio: {2}, val: {3}>", actualItem.Priority, actualItem.Value, expectedItem.Priority, expectedItem.Value);
