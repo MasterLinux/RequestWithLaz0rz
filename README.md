@@ -4,7 +4,6 @@ RequestWithLaz0rz
 #Dependencies
 * Json.NET *(Shouldn't be a hard dependency, an abstract implementation of a XML and JSON parser is the way to go)*
 * Microsoft HTTP Client Libraries
-* C5 - PriorityQueue *(will be replaced by an own implementation)*
 
 #How to use
 Firstly you should implement a `BaseRequest` for the API you will access, so each request in your application can inherit from it.
