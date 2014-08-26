@@ -6,7 +6,7 @@ namespace RequestWithLaz0rz.Data
     /// <summary>
     /// Implementation of a priortiy queue
     /// </summary>
-    public class PriorityQueue<TItem> where TItem : class, IComparable<TItem>, new() 
+    public class PriorityQueue<TItem> where TItem : class, IComparable<TItem>
     {
         private TItem[] _heap;
         private int _count;

@@ -2,6 +2,8 @@
 {
     public class RequestQueue
     {
+        private PriorityQueue<PriorityRequest> _queue;
+ 
         /// <summary>
         /// Checks whether the queue is empty
         /// </summary>
@@ -11,10 +13,10 @@
         }
 
         /// <summary>
-        /// Inserts a new request into the queue
+        /// Enqueues a new request into the queue
         /// </summary>
-        /// <param name="request">The request to insert</param>
-        public void Enqueue(IPriorityRequest request)
+        /// <param name="request">The request to enqueue</param>
+        public void Enqueue(PriorityRequest request)
         {
             
         }
@@ -23,7 +25,7 @@
         /// Gets and removes the next request in the queue
         /// </summary>
         /// <returns>The request with the highest priority</returns>
-        public IPriorityRequest Dequeue()
+        public PriorityRequest Dequeue()
         {
             return null;
         }

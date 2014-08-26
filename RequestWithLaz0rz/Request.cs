@@ -15,7 +15,7 @@ using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
-    public abstract class Request<TResponse> : IPriorityRequest 
+    public abstract class Request<TResponse> : PriorityRequest 
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
@@ -250,15 +250,11 @@ namespace RequestWithLaz0rz
 
         //TODO implement SetBody method for objects
 
-        //public IPriorityQueueHandle<IRequest> QueueHandle { get; set; }
-
-        public abstract RequestPriority Priority { get; }
-
         /// <summary>
         /// Executes the request asynchroniously
         /// </summary>
         /// <param name="onCompleted">Handler which is invoked when request is completed</param>
-        internal async void RunAsync(Action onCompleted)
+        override internal async void RunAsync(Action onCompleted)
         {
             if (IsBusy) return; //TODO throw exception? -> already running
             IsBusy = true;
@@ -445,16 +441,6 @@ namespace RequestWithLaz0rz
 
             result = default(TResponse);
             return false;
-        }
-
-        /// <summary>
-        /// Compares the priority of this request with the priority of another request.
-        /// </summary>
-        /// <param name="other">The other request to compare with</param>
-        /// <returns>Returns whether the priority of this request is higher than the one of the other request</returns>
-        public int CompareTo(IPriorityRequest other)
-        {
-            return Priority.Compare(other.Priority);
         }
     }
 }
