@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Threading;
 
 namespace RequestWithLaz0rz.Data
@@ -11,7 +12,7 @@ namespace RequestWithLaz0rz.Data
     /// <example>This queue uses the singleton pattern.</example>
     /// <code>
     /// //get the queue
-    /// var queue = new RequestQueue();
+    /// var queue = new GetRequestQueue();
     /// 
     /// //register lifecycle events
     /// queue.Started += () => { /* show loading indicator */ }
@@ -31,6 +32,7 @@ namespace RequestWithLaz0rz.Data
     /// </code>
     public class RequestQueue
     {
+        private static readonly ConcurrentDictionary<string, RequestQueue> Instances = new ConcurrentDictionary<string, RequestQueue>();
         private readonly PriorityQueue<PriorityRequest> _queue = new PriorityQueue<PriorityRequest>();
         private int _threadCount;
 
@@ -40,18 +42,32 @@ namespace RequestWithLaz0rz.Data
         private const int QueueCapacity = 256;
 
         /// <summary>
-        /// Default value which defines the maximum 
-        /// number of threads running parallel.
+        /// Maximum number of threads running parallel.
         /// </summary>
-        private const int DefaultMaxThreads = 4;
+        private const int MaxThreads = 4;
+
+        /// <summary>
+        /// The key of the default request queue instance
+        /// </summary>
+        public const string DefaultQueueKey = "$_DefaultRequestQueue_$";
 
         /// <summary>
         /// Initializes the request queue
         /// </summary>
-        /// <param name="maxThreads">Maximum number of threads running parallel</param>
-        public RequestQueue(int maxThreads = DefaultMaxThreads)
+        /// <param name="id">Unique identifier which identifies the queue</param>
+        private RequestQueue(string id)
         {
-            MaxThreads = maxThreads;
+            Id = id;
+        }
+
+        /// <summary>
+        /// Gets a specific request queue by its name
+        /// </summary>
+        /// <param name="key">The key of the queue to get</param>
+        /// <returns></returns>
+        public static RequestQueue GetRequestQueue(string key = DefaultQueueKey)
+        {
+            return Instances.GetOrAdd(key, id => new RequestQueue(id));
         }
 
         #region event handler
@@ -89,9 +105,9 @@ namespace RequestWithLaz0rz.Data
         #endregion
 
         /// <summary>
-        /// Maximum number of threads running parallel.
+        /// Unique ID of this queue
         /// </summary>
-        private int MaxThreads { get; set; }
+        public string Id { get; private set; }
 
         /// <summary>
         /// Checks whether the queue is empty

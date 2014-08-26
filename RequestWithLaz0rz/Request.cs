@@ -20,7 +20,7 @@ namespace RequestWithLaz0rz
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _body = new Dictionary<string, string>();
-        private readonly RequestQueue _queue; // = RequestQueue.Instance;
+        private readonly RequestQueue _queue = RequestQueue.GetRequestQueue();
         private readonly HttpClient _client = new HttpClient();
         private SemaphoreSlim _completedSignal;
         private CompletedEventArgs<TResponse> _completedEventArgs;
