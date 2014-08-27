@@ -40,6 +40,7 @@
   <ItemGroup>
     <Compile Include="Data\PriorityQueue.cs" />
     <Compile Include="Data\RequestQueue.cs" />
+    <Compile Include="Exception\HttpMethodNotSupportedException.cs" />
     <Compile Include="Exception\ParseException.cs" />
     <Compile Include="Extension\HttpClientExtensions.cs" />
     <Compile Include="Extension\RequestPriorityExtension.cs" />

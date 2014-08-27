@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using RequestWithLaz0rz.Data;
+using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
@@ -254,7 +255,7 @@ namespace RequestWithLaz0rz
         /// Executes the request asynchroniously
         /// </summary>
         /// <param name="onCompleted">Handler which is invoked when request is completed</param>
-        override internal async void RunAsync(Action onCompleted)
+        internal override async void RunAsync(Action onCompleted)
         {
             if (IsBusy) return; //TODO throw exception? -> already running
             IsBusy = true;
@@ -305,7 +306,7 @@ namespace RequestWithLaz0rz
                     break;
 
                 default:
-                    //TODO throw exception
+                    throw new HttpMethodNotSupportedException(HttpMethod);
                     break;
             }
 
@@ -385,12 +386,8 @@ namespace RequestWithLaz0rz
                 //initialize signal to wait for
                 _completedSignal = new SemaphoreSlim(0, 1);
 
-                //IPriorityQueueHandle<IRequest> handle = null;
-
                 //add to queue
-               // _queue.Enqueue(ref handle, this);
-
-                //QueueHandle = handle;
+                _queue.Enqueue(this);
             }
 
             //wait for completed event to continue
