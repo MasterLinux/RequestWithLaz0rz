@@ -26,7 +26,18 @@ namespace RequestWithLaz0rz
         /// Stops the execution of this request.
         /// </summary>
         /// <returns>This request</returns>
-        void Abort();
+        Task AbortAsync();
+
+        /// <summary>
+        /// Flag which indicates whether the 
+        /// request is currently executing.
+        /// </summary>
+        bool IsBusy { get; }
+
+        /// <summary>
+        /// Gets whether the request is aborted
+        /// </summary>
+        bool IsAborted { get; }
     }
 
     /// <summary>
@@ -88,13 +99,7 @@ namespace RequestWithLaz0rz
         /// <summary>
         /// Gets the HTTP method of this request
         /// </summary>
-        HttpMethod HttpMethod { get; }
-
-        /// <summary>
-        /// Flag which indicates whether the 
-        /// request is currently executing.
-        /// </summary>
-        bool IsBusy { get; }
+        HttpMethod HttpMethod { get; }       
 
         #endregion
 

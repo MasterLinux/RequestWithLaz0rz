@@ -164,6 +164,8 @@ namespace RequestWithLaz0rz
         /// </summary>
         public bool IsBusy { get; private set; }
 
+        public bool IsAborted { get; private set; } //TODO imlement
+
         /// <summary>
         /// Tries to build the URL query
         /// </summary>
@@ -397,11 +399,13 @@ namespace RequestWithLaz0rz
         /// Stops the execution of this request
         /// </summary>
         /// <returns>This request</returns>
-        public void Abort()
+        public async Task AbortAsync()
         {
             if (!IsBusy || _client == null) return;
             _client.CancelPendingRequests(); //TODO check whether this is the correct method
             IsBusy = false;
+
+            //TODO implement this method awaitable (async) 
         } 
 
         /// <summary>

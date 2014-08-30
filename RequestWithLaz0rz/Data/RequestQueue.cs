@@ -44,7 +44,7 @@ namespace RequestWithLaz0rz.Data
         /// <summary>
         /// Maximum number of threads running parallel.
         /// </summary>
-        private const int MaxThreads = 4;
+        public const int MaxThreads = 4;
 
         /// <summary>
         /// The key of the default request queue instance
