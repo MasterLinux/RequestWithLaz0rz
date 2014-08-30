@@ -44,3 +44,37 @@ namespace YourApp.Request
     }
 }
 ```
+
+Now you are able to implement requests for specific API endpoints like the following one.
+
+```csharp
+namespace YourApp.Request
+{
+    abstract public class DocumentRequest : BaseRequest<DocumentModel>
+    {
+        private readonly int _identifier;
+        
+        // add all specific parameter and headers. 
+        // in addition use parameter for path parameter, etc.  
+        protected DocumentRequest(string userName, int identifier)
+        {
+            AddHeader(new KeyValuePair("X-USER-NAME", userName));
+            _identifier = identifier;    
+        }
+
+        // set the path which points to a specific API endpoint
+        protected override string Path
+        {
+            get { return string.Format("documents/{0}", _identifier); }
+        }
+    }
+}
+
+```
+
+To get the response you just need to to call `Request.GetResponseAsync()`
+
+```csharp
+var request = new DocumentRequest("testUser", 1);
+var document = await request.GetResponseAsync();
+```
