@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using RequestWithLaz0rz;
 using RequestWithLaz0rz.Data;
+using RequestWithLaz0rz.Extension;
 
 namespace RequestWithLaz0rzTest
 {
@@ -56,27 +58,45 @@ namespace RequestWithLaz0rzTest
             queue.Cancel(expensiveRequest);
         }
 
-        public class ExpensiveRequest : PriorityRequest
+        public class ExpensiveRequest : IPriorityRequest
         {
             private readonly RequestPriority _priority;
 
             public ExpensiveRequest(RequestPriority priority)
             {
                 _priority = priority;
+                IsCompleted = false;
             }
 
-            protected override RequestPriority Priority
+            public async Task RunAsync()
+            {
+                var task = new Task(() =>
+                {
+                    while (!IsCompleted)
+                    {
+                        //does nothing
+                    }
+                });
+
+                await task;
+            }
+
+            public void Abort()
+            {
+                IsCompleted = true;
+            }
+
+            private bool IsCompleted { get; set; }
+
+            public int CompareTo(IPriorityRequest other)
+            {
+                return Priority.Compare(other.Priority);
+            }
+
+            public RequestPriority Priority
             {
                 get { return _priority; }
             }
-
-            //protected override async void RunAsync(Action onCompleted)
-            //{
-            //    while (true)
-            //    {
-                    
-            //    }
-            //} 
         }
 
         [TestMethod]

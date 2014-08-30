@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -16,7 +15,7 @@ using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
-    public abstract class Request<TResponse> : PriorityRequest 
+    public abstract class Request<TResponse> : IRequest<TResponse>
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
@@ -75,26 +74,28 @@ namespace RequestWithLaz0rz
 
         #endregion
 
-        protected abstract string BaseUri
+        public RequestPriority Priority { get; private set; }
+
+        public abstract string BaseUri
         {
             get;
         }
 
-        protected abstract string Path
+        public abstract string Path
         {
             get;
         }
 
-        protected string Accept { private get; set; }
+        public string Accept { get; set; }
 
-        protected string UserAgent { private get; set; }
+        public string UserAgent { get; set; }
 
-        protected abstract ContentType ContentType
+        public abstract ContentType ContentType
         {
             get;
         }
 
-        protected abstract HttpMethod HttpMethod
+        public abstract HttpMethod HttpMethod
         {
             get;
         }
@@ -161,7 +162,7 @@ namespace RequestWithLaz0rz
         /// Flag which indicates whether the 
         /// request is currently executing.
         /// </summary>
-        private bool IsBusy { get; set; }
+        public bool IsBusy { get; private set; }
 
         /// <summary>
         /// Tries to build the URL query
@@ -252,10 +253,12 @@ namespace RequestWithLaz0rz
         //TODO implement SetBody method for objects
 
         /// <summary>
-        /// Executes the request asynchroniously
+        /// Executes the request directly without adding
+        /// it to the request queue. Use GetResponseAsync
+        /// instead of this method. 
         /// </summary>
-        /// <param name="onCompleted">Handler which is invoked when request is completed</param>
-        internal override async void RunAsync(Action onCompleted)
+        /// <seealso cref="GetResponseAsync"/>
+        public async Task RunAsync()
         {
             if (IsBusy) return; //TODO throw exception? -> already running
             IsBusy = true;
@@ -265,9 +268,9 @@ namespace RequestWithLaz0rz
                 .SetAcceptHeader(Accept)
                 .SetUserAgent(UserAgent)
                 .AddHeaders(_headers);
-
-            FormUrlEncodedContent content = null;
+            
             HttpResponseMessage response = null;
+            FormUrlEncodedContent content;
 
             switch (HttpMethod)
             {
@@ -307,7 +310,6 @@ namespace RequestWithLaz0rz
 
                 default:
                     throw new HttpMethodNotSupportedException(HttpMethod);
-                    break;
             }
 
             if (response != null)
@@ -339,9 +341,7 @@ namespace RequestWithLaz0rz
                         IsBusy = false;
                         _completedEventArgs.IsErrorOccured = true;
                         OnError(_completedEventArgs);
-                    }
-
-                    if (onCompleted != null) onCompleted();
+                    }                    
                 }
                 else
                 {
@@ -357,9 +357,6 @@ namespace RequestWithLaz0rz
                     };
 
                     OnError(_completedEventArgs);                  
-
-                    //invoke onCompleted handler
-                    if (onCompleted != null) onCompleted();
                 }
             }
             else
@@ -376,9 +373,9 @@ namespace RequestWithLaz0rz
 
         /// <summary>
         /// Adds the request into request queue and
-        /// executes  
+        /// executes the request asynchroniously.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>The response</returns>
         public async Task<CompletedEventArgs<TResponse>> GetResponseAsync()
         {
             if (!IsBusy) {
@@ -396,14 +393,15 @@ namespace RequestWithLaz0rz
             return _completedEventArgs;
         }
 
-        
-        public Request<TResponse> Abort()
+        /// <summary>
+        /// Stops the execution of this request
+        /// </summary>
+        /// <returns>This request</returns>
+        public void Abort()
         {
-            if (!IsBusy || _client == null) return this;
+            if (!IsBusy || _client == null) return;
             _client.CancelPendingRequests(); //TODO check whether this is the correct method
             IsBusy = false;
-
-            return this;
         } 
 
         /// <summary>
@@ -438,6 +436,16 @@ namespace RequestWithLaz0rz
 
             result = default(TResponse);
             return false;
+        }
+
+        /// <summary>
+        /// Compares the priority of this request with the priority of another request.
+        /// </summary>
+        /// <param name="other">The other request to compare with</param>
+        /// <returns>Returns whether the priority of this request is higher than the one of the other request</returns>
+        public int CompareTo(IPriorityRequest other)
+        {
+            return Priority.Compare(other.Priority);
         }
     }
 }

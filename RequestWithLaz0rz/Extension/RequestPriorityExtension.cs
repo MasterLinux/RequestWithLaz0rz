@@ -1,6 +1,6 @@
 ﻿namespace RequestWithLaz0rz.Extension
 {
-    static internal class RequestPriorityExtension
+    static public class RequestPriorityExtension
     {
         private const int HighPriorityValue = 10;
         private const int MediumPriorityValue = 5;

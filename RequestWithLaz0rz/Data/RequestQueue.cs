@@ -33,7 +33,7 @@ namespace RequestWithLaz0rz.Data
     public class RequestQueue
     {
         private static readonly ConcurrentDictionary<string, RequestQueue> Instances = new ConcurrentDictionary<string, RequestQueue>();
-        private readonly PriorityQueue<PriorityRequest> _queue = new PriorityQueue<PriorityRequest>();
+        private readonly PriorityQueue<IPriorityRequest> _queue = new PriorityQueue<IPriorityRequest>();
         private int _threadCount;
 
         /// <summary>
@@ -114,7 +114,7 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         public bool IsEmpty
         {
-            get { return _queue.IsEmpty; }
+            get { return _queue.IsEmpty && _threadCount == 0; }
         }
 
         /// <summary>
@@ -122,14 +122,14 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         public bool IsNotEmpty
         {
-            get { return _queue.IsNotEmpty; }
+            get { return !IsEmpty; }
         }
 
         /// <summary>
         /// Enqueues a new request into the queue
         /// </summary>
         /// <param name="request">The request to enqueue</param>
-        public void Enqueue(PriorityRequest request)
+        public void Enqueue(IPriorityRequest request)
         {
             lock (_queue)
             {
@@ -161,7 +161,7 @@ namespace RequestWithLaz0rz.Data
                 //get request with the highest priority
                 var request = _queue.DeleteMax();
 
-                request.RunAsync(() =>
+                request.RunAsync().ContinueWith(task =>
                 {
                     //on request completed
                     Interlocked.Decrement(ref _threadCount);
@@ -192,7 +192,7 @@ namespace RequestWithLaz0rz.Data
         /// whenever no specific request is passed.
         /// </summary>
         /// <param name="request">The request to cancel or null to cancel all</param>
-        public void Cancel(PriorityRequest request = null)
+        public void Cancel(IPriorityRequest request = null)
         {
             throw new NotImplementedException();
         }
