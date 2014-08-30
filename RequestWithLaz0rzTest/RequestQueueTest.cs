@@ -10,13 +10,6 @@ namespace RequestWithLaz0rzTest
     [TestClass]
     public class RequestQueueTest
     {
-        private RequestQueue _queue;
-
-        [TestInitialize]
-        public void InitializeTest()
-        {
-            //_queue = new RequestQueue();
-        }
 
         [TestMethod]
         public void TestGetInstance()
@@ -55,7 +48,7 @@ namespace RequestWithLaz0rzTest
             Assert.IsFalse(queue.IsEmpty);
             Assert.IsTrue(queue.IsNotEmpty);
 
-            expensiveRequest.AbortAsync();
+            expensiveRequest.AbortAsync().Wait();
         }
 
         [TestMethod]
@@ -158,6 +151,8 @@ namespace RequestWithLaz0rzTest
             {
                 get { return _priority; }
             }
+
+            public int QueueHandle { get; set; }
         }        
     }
 }

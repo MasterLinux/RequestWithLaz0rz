@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using RequestWithLaz0rz.Data;
 using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Type;
 
@@ -8,7 +9,7 @@ namespace RequestWithLaz0rz
     /// <summary>
     /// Interface for requests with a priority
     /// </summary>
-    public interface IPriorityRequest : IComparable<IPriorityRequest>
+    public interface IPriorityRequest : IComparable<IPriorityRequest>, IPriorityQueueItem
     {
         /// <summary>
         /// Gets the execution priority. A request with a higher

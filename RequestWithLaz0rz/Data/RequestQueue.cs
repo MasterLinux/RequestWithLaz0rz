@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace RequestWithLaz0rz.Data
 {
     /// <summary>
     /// Request queue which handles the execution of all started requests. It allows
-    /// to cancel a specific or all requests currently running. In addition it provides
+    /// to cancel a specific or all requests which are currently running. In addition it provides
     /// events to listen for lifecycle events, like the completed event.
     /// </summary>
-    /// <example>This queue uses the singleton pattern.</example>
+    /// <example>This queue uses the multiton pattern.</example>
     /// <code>
-    /// //get the queue
-    /// var queue = new GetRequestQueue();
+    /// //get the default queue
+    /// var queue = RequestQueue.GetRequestQueue();
+    /// 
+    /// //get a specific queue
+    /// var specificQueue = RequestQueue.GetRequestQueue("aKey");
     /// 
     /// //register lifecycle events
     /// queue.Started += () => { /* show loading indicator */ }
@@ -21,13 +25,13 @@ namespace RequestWithLaz0rz.Data
     /// //create a request and execute to add it to queue,
     /// //because the request enqueues itself when executing
     /// var request = new ExampleRequest();
-    /// request.GetResponseAsync();
+    /// var response = await request.GetResponseAsync();
     /// 
     /// //cancel a specific request
-    /// queue.Cancel(request);
+    /// await queue.AbortAsync(request);
     /// 
     /// //cancel all requests
-    /// queue.Cancel();
+    /// await queue.AbortAsync();
     /// 
     /// </code>
     public class RequestQueue
@@ -37,19 +41,14 @@ namespace RequestWithLaz0rz.Data
         private int _threadCount;
 
         /// <summary>
-        /// Maximum number of requests in queue.
-        /// </summary>
-        private const int QueueCapacity = 256;
-
-        /// <summary>
         /// Maximum number of threads running parallel.
         /// </summary>
-        public const int MaxThreads = 4;
+        public const int MaxThreads = 4; //TODO implement getter and setter
 
         /// <summary>
         /// The key of the default request queue instance
         /// </summary>
-        public const string DefaultQueueKey = "$_DefaultRequestQueue_$";
+        public const string DefaultQueueKey = "$_DefaultRequestQueue_$";      
 
         /// <summary>
         /// Initializes the request queue
@@ -123,7 +122,7 @@ namespace RequestWithLaz0rz.Data
         public bool IsNotEmpty
         {
             get { return !IsEmpty; }
-        }
+        }      
 
         /// <summary>
         /// Enqueues a new request into the queue
@@ -192,9 +191,18 @@ namespace RequestWithLaz0rz.Data
         /// whenever no specific request is passed.
         /// </summary>
         /// <param name="request">The request to cancel or null to cancel all</param>
-        public void Cancel(IPriorityRequest request = null)
+        public async Task AbortAsync(IPriorityRequest request = null)
         {
-            throw new NotImplementedException();
+            if (request != null)
+            {
+                //TODO remove from queue
+                await request.AbortAsync();
+            }
+            else
+            {
+
+                //TODO abort all
+            }
         }
     }
 }

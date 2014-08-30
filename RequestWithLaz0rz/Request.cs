@@ -74,6 +74,13 @@ namespace RequestWithLaz0rz
 
         #endregion
 
+        /// <summary>
+        /// Gets the queue handle used to find
+        /// the requests position inside the
+        /// priority queue 
+        /// </summary>
+        public int QueueHandle { get; set; }
+
         public RequestPriority Priority { get; private set; }
 
         public abstract string BaseUri
@@ -450,6 +457,6 @@ namespace RequestWithLaz0rz
         public int CompareTo(IPriorityRequest other)
         {
             return Priority.Compare(other.Priority);
-        }
+        }       
     }
 }
