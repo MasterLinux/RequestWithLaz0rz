@@ -204,6 +204,38 @@ namespace RequestWithLaz0rzTest
             Assert.AreSame(expectedItem1, actualItem);
         }
 
+        [TestMethod]
+        public void TestRemoveAllItems()
+        {
+            const int expectedCount = 7;
+            var expectedItem1 = new ItemMock(1, "a");
+            var expectedItem2 = new ItemMock(2, "b");
+            var expectedItem3 = new ItemMock(3, "c");
+            var expectedItem4 = new ItemMock(4, "d");
+            var expectedItem5 = new ItemMock(5, "e");
+            var expectedItem6 = new ItemMock(6, "f");
+            var expectedItem7 = new ItemMock(7, "g");
+
+            _queue.Insert(expectedItem6);
+            _queue.Insert(expectedItem2);
+            _queue.Insert(expectedItem4);
+            _queue.Insert(expectedItem7);
+            _queue.Insert(expectedItem5);
+            _queue.Insert(expectedItem3);
+            _queue.Insert(expectedItem1);
+
+            Assert.AreEqual(expectedCount, _queue.Count);
+            Assert.IsTrue(_queue.IsNotEmpty);
+
+            var items = _queue.DeleteAll();
+
+            Assert.AreEqual(0, _queue.Count);
+            Assert.IsTrue(_queue.IsEmpty);
+
+            Assert.AreSame(expectedItem7, items[0]);
+            Assert.IsNull(items[8]);
+        }
+
         public class ItemMock : IComparable<ItemMock>, IPriorityQueueItem
         {
             public ItemMock()

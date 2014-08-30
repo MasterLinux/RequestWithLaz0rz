@@ -193,15 +193,28 @@ namespace RequestWithLaz0rz.Data
         /// <param name="request">The request to cancel or null to cancel all</param>
         public async Task AbortAsync(IPriorityRequest request = null)
         {
+            //delete and abort a specific request
             if (request != null)
             {
-                //TODO remove from queue
-                await request.AbortAsync();
+                await Task.Factory.StartNew(() =>
+                {
+                    _queue.Delete(request);
+                    request.AbortAsync().Wait();
+                });
             }
+
+            //otherwise delete and abort all requests
             else
             {
+                await Task.Factory.StartNew(() =>
+                {
+                    var requests = _queue.DeleteAll();
 
-                //TODO abort all
+                    foreach (var priorityRequest in requests)
+                    {
+                        priorityRequest.AbortAsync().Wait();    
+                    }                  
+                });
             }
         }
     }
