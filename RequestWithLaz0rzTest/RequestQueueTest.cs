@@ -89,9 +89,60 @@ namespace RequestWithLaz0rzTest
         }
 
         [TestMethod]
-        public void TestAbortRequest()
+        public void TestAbortSpecificRequest()
         {
-            
+            var queue = RequestQueue.GetRequestQueue("abortSpecificTest");
+
+            var expensiveRequest = new ExpensiveRequest(RequestPriority.High);
+            var expensiveRequest2 = new ExpensiveRequest(RequestPriority.High);
+            var expensiveRequest3 = new ExpensiveRequest(RequestPriority.High);
+
+            queue.Enqueue(expensiveRequest);
+            queue.Enqueue(expensiveRequest2);
+            queue.Enqueue(expensiveRequest3);
+
+            Assert.IsTrue(queue.IsNotEmpty);
+            Assert.IsTrue(expensiveRequest.IsBusy);
+            Assert.IsTrue(expensiveRequest2.IsBusy);
+            Assert.IsTrue(expensiveRequest3.IsBusy);
+
+            queue.AbortAsync(expensiveRequest2).Wait();
+
+            Assert.IsTrue(expensiveRequest2.IsAborted);
+            Assert.IsFalse(expensiveRequest2.IsBusy);
+
+            expensiveRequest.AbortAsync().Wait();
+            expensiveRequest3.AbortAsync().Wait();
+        }
+
+        [TestMethod]
+        public void TestAbortAllRequests()
+        {
+            var queue = RequestQueue.GetRequestQueue("abortAllTest");
+
+            var expensiveRequest = new ExpensiveRequest(RequestPriority.High);
+            var expensiveRequest2 = new ExpensiveRequest(RequestPriority.High);
+            var expensiveRequest3 = new ExpensiveRequest(RequestPriority.High);
+
+            queue.Enqueue(expensiveRequest);
+            queue.Enqueue(expensiveRequest2);
+            queue.Enqueue(expensiveRequest3);
+
+            Assert.IsTrue(queue.IsNotEmpty);
+            Assert.IsTrue(expensiveRequest.IsBusy);
+            Assert.IsTrue(expensiveRequest2.IsBusy);
+            Assert.IsTrue(expensiveRequest3.IsBusy);
+
+            queue.AbortAllAsync().Wait();
+
+            Assert.IsTrue(expensiveRequest.IsAborted);
+            Assert.IsFalse(expensiveRequest.IsBusy);
+            Assert.IsTrue(expensiveRequest2.IsAborted);
+            Assert.IsFalse(expensiveRequest2.IsBusy);
+            Assert.IsTrue(expensiveRequest3.IsAborted);
+            Assert.IsFalse(expensiveRequest3.IsBusy);
+
+            Assert.IsTrue(queue.IsEmpty);
         }
 
         /// <summary>

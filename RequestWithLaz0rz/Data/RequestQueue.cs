@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,19 +27,20 @@ namespace RequestWithLaz0rz.Data
     /// //create a request and execute to add it to queue,
     /// //because the request enqueues itself when executing
     /// var request = new ExampleRequest();
-    /// var response = await request.GetResponseAsync();
+    /// var task = request.GetResponseAsync();
     /// 
     /// //cancel a specific request
     /// await queue.AbortAsync(request);
     /// 
     /// //cancel all requests
-    /// await queue.AbortAsync();
+    /// await queue.AbortAllAsync();
     /// 
     /// </code>
     public class RequestQueue
     {
         private static readonly ConcurrentDictionary<string, RequestQueue> Instances = new ConcurrentDictionary<string, RequestQueue>();
         private readonly PriorityQueue<IPriorityRequest> _queue = new PriorityQueue<IPriorityRequest>();
+        private readonly List<IPriorityRequest> _executionQueue = new List<IPriorityRequest>(); 
         private int _threadCount;
 
         /// <summary>
@@ -104,6 +107,15 @@ namespace RequestWithLaz0rz.Data
         #endregion
 
         /// <summary>
+        /// Gets the number of requests actually 
+        /// containted in this queue
+        /// </summary>
+        public int Count
+        {
+            get { return _queue.Count + _executionQueue.Count; }
+        }
+
+        /// <summary>
         /// Unique ID of this queue
         /// </summary>
         public string Id { get; private set; }
@@ -113,7 +125,7 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         public bool IsEmpty
         {
-            get { return _queue.IsEmpty && _threadCount == 0; }
+            get { return Count == 0; }
         }
 
         /// <summary>
@@ -121,7 +133,7 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         public bool IsNotEmpty
         {
-            get { return !IsEmpty; }
+            get { return Count > 0; }
         }      
 
         /// <summary>
@@ -159,10 +171,12 @@ namespace RequestWithLaz0rz.Data
 
                 //get request with the highest priority
                 var request = _queue.DeleteMax();
+                _executionQueue.Add(request);
 
                 request.RunAsync().ContinueWith(task =>
                 {
                     //on request completed
+                    _executionQueue.Remove(request);
                     Interlocked.Decrement(ref _threadCount);
                     DequeueNext();
                 });
@@ -186,36 +200,39 @@ namespace RequestWithLaz0rz.Data
         }
 
         /// <summary>
-        /// Cancels a specific request and removes
-        /// it from queue or cancels all requests
-        /// whenever no specific request is passed.
+        /// Cancels and removes a specific request from queue
         /// </summary>
-        /// <param name="request">The request to cancel or null to cancel all</param>
-        public async Task AbortAsync(IPriorityRequest request = null)
+        /// <param name="request">The request to cancel</param>
+        public async Task AbortAsync(IPriorityRequest request)
         {
-            //delete and abort a specific request
-            if (request != null)
+            await Task.Factory.StartNew(() =>
             {
-                await Task.Factory.StartNew(() =>
-                {
-                    _queue.Delete(request);
-                    request.AbortAsync().Wait();
-                });
-            }
+                _queue.Delete(request);
+                request.AbortAsync().Wait();
+            });
+        }
 
-            //otherwise delete and abort all requests
-            else
+        /// <summary>
+        /// Cancels and removes each request in queue
+        /// </summary>
+        public async Task AbortAllAsync()
+        {
+            await Task.Factory.StartNew(() =>
             {
-                await Task.Factory.StartNew(() =>
+                //delete all waiting requests
+                var requests = _queue.DeleteAll();
+                foreach (var priorityRequest in requests.Where(request => request != null))
                 {
-                    var requests = _queue.DeleteAll();
+                    priorityRequest.AbortAsync().Wait();
+                }
 
-                    foreach (var priorityRequest in requests)
-                    {
-                        priorityRequest.AbortAsync().Wait();    
-                    }                  
-                });
-            }
+                //delete all running requests
+                _executionQueue.CopyTo(requests);
+                foreach (var priorityRequest in requests.Where(request => request != null))
+                {
+                    priorityRequest.AbortAsync().Wait(); 
+                }
+            });
         }
     }
 }
