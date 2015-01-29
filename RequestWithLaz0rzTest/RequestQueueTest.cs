@@ -7,6 +7,7 @@ using RequestWithLaz0rz.Extension;
 
 namespace RequestWithLaz0rzTest
 {
+    /*
     [TestClass]
     public class RequestQueueTest
     {
@@ -205,5 +206,5 @@ namespace RequestWithLaz0rzTest
 
             public int QueueHandle { get; set; }
         }        
-    }
+    }*/
 }

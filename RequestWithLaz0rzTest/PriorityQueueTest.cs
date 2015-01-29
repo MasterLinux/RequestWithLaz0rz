@@ -22,7 +22,7 @@ namespace RequestWithLaz0rzTest
         }
 
         [TestMethod]
-        public void TestInsertItem()
+        public void TestShouldInsertItem()
         {
             var expectedSize = 0;
             var actualSize = _queue.Count;
@@ -53,7 +53,7 @@ namespace RequestWithLaz0rzTest
         }
 
         [TestMethod]
-        public void TestGetItemWithHighestPriority()
+        public void TestShouldGetItemWithHighestPriority()
         {
             const int expectedPriority = 8;
             const string expectedValue = "b";
@@ -76,7 +76,7 @@ namespace RequestWithLaz0rzTest
         }
 
         [TestMethod]
-        public void TestGetAndRemoveItemWithHighestPriority()
+        public void TestShouldGetAndRemoveItemWithHighestPriority()
         {
             var expectedItem1 = new ItemMock(1, "a");
             var expectedItem2 = new ItemMock(2, "b");
@@ -153,7 +153,7 @@ namespace RequestWithLaz0rzTest
         }
 
         [TestMethod]
-        public void TestRemoveSpecificItem()
+        public void TestShouldRemoveSpecificItem()
         {
             var expectedItem1 = new ItemMock(1, "a");
             var expectedItem2 = new ItemMock(2, "b");
@@ -205,7 +205,7 @@ namespace RequestWithLaz0rzTest
         }
 
         [TestMethod]
-        public void TestRemoveAllItems()
+        public void TestShouldRemoveAllItems()
         {
             const int expectedCount = 7;
             var expectedItem1 = new ItemMock(1, "a");
