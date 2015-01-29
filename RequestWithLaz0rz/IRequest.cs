@@ -6,6 +6,7 @@ using RequestWithLaz0rz.Type;
 
 namespace RequestWithLaz0rz
 {
+    /*
     /// <summary>
     /// Interface for requests with a priority
     /// </summary>
@@ -140,5 +141,5 @@ namespace RequestWithLaz0rz
         Task<CompletedEventArgs<TResponse>> GetResponseAsync();       
 
         #endregion
-    }
+    }*/
 }

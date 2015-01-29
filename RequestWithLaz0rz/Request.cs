@@ -15,6 +15,7 @@ using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
+    /*
     public abstract class Request<TResponse> : IRequest<TResponse>
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
@@ -458,5 +459,5 @@ namespace RequestWithLaz0rz
         {
             return Priority.Compare(other.Priority);
         }       
-    }
+    } */
 }

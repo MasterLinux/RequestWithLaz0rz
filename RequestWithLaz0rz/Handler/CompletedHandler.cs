@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 
 namespace RequestWithLaz0rz.Handler
 {
+    /*
     public delegate void CompletedHandler<TResponse>(
         Request<TResponse> sender, 
         CompletedEventArgs<TResponse> args
@@ -82,5 +83,5 @@ namespace RequestWithLaz0rz.Handler
 
             return null;
         }
-    }
+    } */
 }

@@ -7,6 +7,206 @@ using System.Threading.Tasks;
 
 namespace RequestWithLaz0rz.Data
 {
+    public delegate void CompletedHandler<TResponse>(IRequest<TResponse> sender, RequestCompletedEventArgs<TResponse> args);
+
+    public delegate void ErrorOccurredHandler<TResponse>(IRequest<TResponse> sender, RequestErrorOccurredEventArgs args);
+
+    public class RequestErrorOccurredEventArgs : EventArgs
+    {
+        //TODO implement
+    }
+
+    public class RequestCompletedEventArgs<TResponse> : EventArgs
+    {
+        public TResponse Response { private set; get; }
+
+        public RequestCompletedEventArgs(TResponse response)
+        {
+            Response = response;
+        }
+    }
+
+    public interface IResponseModel
+    {
+        //TODO implement inherits from ISerializable?
+    }
+
+    public interface IRequest<TResponse> : IPriorityQueueItem, IComparable<IRequest<IResponseModel>>
+    {
+        /// <summary>
+        /// Event which is invoked whenever the request is
+        /// successfully executed. 
+        /// </summary>
+        event CompletedHandler<TResponse> Completed;
+
+        /// <summary>
+        /// Event which is invoked whenever an error occurred
+        /// when executing.
+        /// </summary>
+        event ErrorOccurredHandler<TResponse> ErrorOccurred;
+
+        /// <summary>
+        /// Gets the execution priority. A request with a higher
+        /// priority will be executed before a request
+        /// with a lower one.
+        /// </summary>
+        RequestPriority Priority { get; }
+
+        /// <summary>
+        /// Executes the request
+        /// </summary>
+        Task ExecuteAsync();
+
+        /// <summary>
+        /// Stops the execution of this request.
+        /// </summary>
+        /// <returns>This request</returns>
+        Task AbortAsync();
+
+        /// <summary>
+        /// Flag which indicates whether the 
+        /// request is currently executing.
+        /// </summary>
+        bool IsExecuting { get; }
+
+        /// <summary>
+        /// Gets whether the request is aborted
+        /// </summary>
+        bool IsAborted { get; }
+    }
+
+    public class RequestQueue
+    {
+        private PriorityQueue<IRequest<IResponseModel>> _queue = new PriorityQueue<IRequest<IResponseModel>>();
+        private readonly Object _threadLock = new Object();
+        private int _currentThreads;
+
+        public RequestQueue(int maxThreads)
+        {
+            MaxThreads = maxThreads;
+        }
+
+        /// <summary>
+        /// Gets the number of requests actually 
+        /// containted in this queue
+        /// </summary>
+        public int Count
+        {
+            get { return _queue.Count; }
+        }
+
+        /// <summary>
+        /// Checks whether the queue is empty
+        /// </summary>
+        public bool IsEmpty
+        {
+            get { return Count == 0; }
+        }
+
+        /// <summary>
+        /// Checks whether the queue is not empty
+        /// </summary>
+        public bool IsNotEmpty
+        {
+            get { return Count > 0; }
+        }
+
+        /// <summary>
+        /// Gets the max number of threads 
+        /// allowed executing concurrent
+        /// </summary>
+        public int MaxThreads { get; private set; }
+
+        /// <summary>
+        /// Enqueues a request and starts it 
+        /// </summary>
+        /// <param name="request">The request to enqueue</param>
+        public void Enqueue(IRequest<IResponseModel> request)
+        {
+            _queue.Insert(request);
+
+            if (IncrementCount())
+            {
+                ExecuteNext();
+            }
+        }
+
+        public async Task AbortAllAsync()
+        {
+            
+        }
+
+        public async Task AbortAsync(IRequest<IResponseModel> request)
+        {
+
+        }
+
+        /// <summary>
+        /// Executes the next request in queue
+        /// </summary>
+        private void ExecuteNext()
+        {
+            var task = DequeueAsync();
+
+            task.GetAwaiter().OnCompleted(() =>
+            {
+                if(DecrementCount() > 0) 
+                {
+                    ExecuteNext();
+                }
+            });
+        }
+
+        /// <summary>
+        /// Dequeues the next request in queue and executes it
+        /// </summary>
+        /// <returns>The execution task</returns>
+        private async Task DequeueAsync()
+        {
+            var request = _queue.DeleteMax();
+            await request.ExecuteAsync();
+        }
+
+        /// <summary>
+        /// Increments the counter of concurrent threads 
+        /// but the max number ob concurrent threads is reached
+        /// </summary>
+        /// <returns>true if the counter is incremented, false otherwise</returns>
+        private bool IncrementCount()
+        {
+            var isIncremented = false;
+
+            lock (_threadLock)
+            {
+                if (_currentThreads < MaxThreads)
+                {
+                    ++_currentThreads;
+                    isIncremented = true;
+                } 
+            }
+
+            return isIncremented;
+        }
+
+        /// <summary>
+        /// Decrements the counter of concurrent threads 
+        /// </summary>
+        /// <returns>The number of concurrent threads</returns>
+        private int DecrementCount()
+        {
+            lock (_threadLock)
+            {
+                if (_currentThreads > 0)
+                {
+                    --_currentThreads;
+                }
+            }
+
+            return _currentThreads;
+        }       
+    }
+
+
     /// <summary>
     /// Request queue which handles the execution of all started requests. It allows
     /// to cancel a specific or all requests which are currently running. In addition it provides
@@ -36,7 +236,8 @@ namespace RequestWithLaz0rz.Data
     /// await queue.AbortAllAsync();
     /// 
     /// </code>
-    public class RequestQueue
+    /**
+    public class RequestQueue2
     {
         private static readonly ConcurrentDictionary<string, RequestQueue> Instances = new ConcurrentDictionary<string, RequestQueue>();
         private readonly PriorityQueue<IPriorityRequest> _queue = new PriorityQueue<IPriorityRequest>();
@@ -57,7 +258,7 @@ namespace RequestWithLaz0rz.Data
         /// Initializes the request queue
         /// </summary>
         /// <param name="id">Unique identifier which identifies the queue</param>
-        private RequestQueue(string id)
+        private RequestQueue2(string id)
         {
             Id = id;
         }
@@ -234,5 +435,6 @@ namespace RequestWithLaz0rz.Data
                 }
             });
         }
-    }
+    } */
 }
+   
