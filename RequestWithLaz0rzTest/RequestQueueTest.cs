@@ -80,7 +80,12 @@ namespace RequestWithLaz0rzTest
             var request = new RequestMock(RequestPriority.High);
             var anotherRequest = new RequestMock(RequestPriority.Low);
             int startedEventCallCount = 0, completedEventCallCount = 0;
-            StartedHandler startedMock = sender => Interlocked.Increment(ref startedEventCallCount);
+            var requestsCompletedSemaphoreSlim = new SemaphoreSlim(1);
+            StartedHandler startedMock = sender =>
+            {
+                Interlocked.Increment(ref startedEventCallCount);
+                requestsCompletedSemaphoreSlim.Release();
+            };
             CompletedHandler completedMock = sender => Interlocked.Increment(ref completedEventCallCount);
             const int expectedStartedEventCallCount = 1, expectedCompletedEventCallCount = 1;
 
@@ -88,13 +93,15 @@ namespace RequestWithLaz0rzTest
             queueUnderTest.Completed += completedMock;
 
             queueUnderTest.EnqueueAsync(request).Wait();
-            queueUnderTest.EnqueueAsync(anotherRequest).Wait();
+            queueUnderTest.EnqueueAsync(anotherRequest).Wait();  
+        
+            queueUnderTest.AbortAsync(request).Wait();
+            queueUnderTest.AbortAsync(anotherRequest).Wait();
+
+            //request completion handler run asynchonously
+            requestsCompletedSemaphoreSlim.Wait();
 
             Assert.AreEqual(expectedStartedEventCallCount, startedEventCallCount, "");
-
-            queueUnderTest.AbortAsync(request).Wait();
-            queueUnderTest.AbortAsync(anotherRequest).Wait();           
-
             Assert.AreEqual(expectedCompletedEventCallCount, completedEventCallCount);
         }
 

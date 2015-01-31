@@ -53,6 +53,8 @@ namespace RequestWithLaz0rz.Data
         private readonly PriorityQueue<IRequest> _queue = new PriorityQueue<IRequest>();
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
         private readonly SemaphoreSlim _maxThreadsSemaphore;
+        private readonly object _lockObject = new object();
+        private readonly List<IRequest> _currentRequests = new List<IRequest>();
 
         /// <summary>
         /// Maximum number of requests that can be granted concurrently
@@ -63,7 +65,7 @@ namespace RequestWithLaz0rz.Data
 
         protected virtual void OnStarted()
         {
-            StartedHandler handler = Started;
+            var handler = Started;
             if (handler != null) handler(this);
         }
 
@@ -71,7 +73,7 @@ namespace RequestWithLaz0rz.Data
 
         protected virtual void OnCompleted()
         {
-            CompletedHandler handler = Completed;
+            var handler = Completed;
             if (handler != null) handler(this);
         }
 
@@ -94,7 +96,7 @@ namespace RequestWithLaz0rz.Data
             get
             {
                 _lock.EnterReadLock();
-                var count = _queue.Count + (MaxThreadCount - _maxThreadsSemaphore.CurrentCount);
+                var count = _queue.Count + _currentRequests.Count;
                 _lock.ExitReadLock();
 
                 return count;
@@ -131,15 +133,9 @@ namespace RequestWithLaz0rz.Data
         {
             get
             {
-                _lock.EnterReadLock();
-                var count = MaxThreadCount - _maxThreadsSemaphore.CurrentCount;
-                _lock.ExitReadLock();
-
-                return count;
+                return MaxThreadCount - _maxThreadsSemaphore.CurrentCount;
             }
         }
-
-
 
         /// <summary>
         /// Enqueues a request and starts it 
@@ -169,18 +165,47 @@ namespace RequestWithLaz0rz.Data
 
             _lock.EnterWriteLock();
             var request = _queue.DeleteMax();
+            _currentRequests.Add(request);
             _lock.ExitWriteLock();
 
             request.ExecuteAsync().GetAwaiter().OnCompleted(() =>
-            {               
-                _maxThreadsSemaphore.Release();
+            {
+                lock (_lockObject)
+                {                    
+                    _lock.EnterWriteLock();
+                    _currentRequests.Remove(request);                  
+                    _lock.ExitWriteLock();                   
+                                     
+                    if (IsEmpty)
+                    {
+                        OnCompleted();
+                    }
 
-                if(IsEmpty)
-                {
-                    OnCompleted();
-                }
+                    _maxThreadsSemaphore.Release();
+                }               
             });           
-        }      
+        }
+
+        /// <summary>
+        /// Deletes all running and waiting 
+        /// requests from queue
+        /// </summary>
+        /// <returns>List of deleted requests</returns>
+        private List<IRequest> DeleteAll()
+        {
+            _lock.EnterWriteLock();
+
+            //delete running requests
+            var requests = new List<IRequest>(_currentRequests);
+            _currentRequests.Clear();
+
+            //delete waiting requests
+            requests.AddRange(_queue.DeleteAll());
+
+            _lock.ExitWriteLock();
+
+            return requests;
+        } 
 
         /// <summary>
         /// Aborts all requests and removes these from queue
@@ -190,21 +215,19 @@ namespace RequestWithLaz0rz.Data
         {
             await Task.Factory.StartNew(() =>
             {
-                _lock.EnterWriteLock();
-                var requests = _queue.DeleteAll();
-                _lock.ExitWriteLock();
-                
-                var completionSemaphore = new SemaphoreSlim(0, requests.Count());
+                var requests = DeleteAll();
+                var count = requests.Count();
 
-                foreach(var request in requests)
-                {
-                    request.AbortAsync().GetAwaiter().OnCompleted(() =>
+                if(count > 0) {
+                    var completionSemaphore = new SemaphoreSlim(0, count);
+
+                    foreach(var request in requests)
                     {
-                        completionSemaphore.Release();
-                    });
-                }
+                        request.AbortAsync().GetAwaiter().OnCompleted(() => completionSemaphore.Release());
+                    }
 
-                completionSemaphore.WaitAsync().Wait();
+                    completionSemaphore.Wait();
+                }
             });
         }
 
