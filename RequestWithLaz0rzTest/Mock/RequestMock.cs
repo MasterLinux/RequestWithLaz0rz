@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using RequestWithLaz0rz;
 using RequestWithLaz0rz.Data;
@@ -8,6 +9,11 @@ namespace RequestWithLaz0rzTest.Mock
     public class RequestMock : IRequest
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
+
+        public event Action Started;
+
+        public event Action Completed;
+
         public RequestMock(RequestPriority priority)
         {
             Priority = priority;
@@ -22,6 +28,8 @@ namespace RequestWithLaz0rzTest.Mock
 
         public async Task ExecuteAsync()
         {
+            if (Started != null) Started();
+
             _semaphoreSlim.Wait();
             IsExecuting = true;
 
@@ -34,6 +42,8 @@ namespace RequestWithLaz0rzTest.Mock
 
                 IsExecuting = false;
                 _semaphoreSlim.Release();
+
+                if (Completed != null) Completed();
             });
         }
 

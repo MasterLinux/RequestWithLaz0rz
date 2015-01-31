@@ -46,7 +46,7 @@ namespace RequestWithLaz0rz.Data
     public delegate void CompletedHandler(RequestQueue sender);
 
     /// <summary>
-    /// Priority queue for requests
+    /// Thread-safe priority queue for requests
     /// </summary>
     public class RequestQueue //TODO rename to TaskQueue?
     {
