@@ -140,9 +140,9 @@ namespace RequestWithLaz0rz.Data
         /// <returns>All deleted items</returns>
         public TItem[] DeleteAll()
         {
-            var length = _heap.Length - 1;
-            var temp = new TItem[length];
-            Array.Copy(_heap, 1, temp, 0, length);
+            var count = _heap.Count(item => item != null);
+            var temp = new TItem[count];
+            Array.Copy(_heap, 1, temp, 0, count);
             _heap = new TItem[InitialCapacity + 1];
             _count = 0;
             return temp;

@@ -7,8 +7,8 @@
     /// </summary>
     public enum RequestPriority
     {
-        High,
-        Medium,
-        Low
+        High = 2,
+        Medium = 1,
+        Low = 0
     }
 }

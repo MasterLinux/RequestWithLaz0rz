@@ -1,210 +1,102 @@
 ﻿using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using RequestWithLaz0rz;
 using RequestWithLaz0rz.Data;
-using RequestWithLaz0rz.Extension;
+using RequestWithLaz0rzTest.Mock;
 
 namespace RequestWithLaz0rzTest
 {
-    /*
     [TestClass]
     public class RequestQueueTest
     {
 
         [TestMethod]
-        public void TestGetInstance()
+        public void TestShouldAddAndExecuteRequest()
         {
-            const string expectedDefaultQueueId = RequestQueue.DefaultQueueKey;
-            const string expectedTestQueueId = "test";
-            
-            var defaultQueue = RequestQueue.GetRequestQueue();
-            var defaultQueue2 = RequestQueue.GetRequestQueue();
-            var testQueue = RequestQueue.GetRequestQueue(expectedTestQueueId);
-            var testQueue2 = RequestQueue.GetRequestQueue(expectedTestQueueId);
+            var queueUnderTest = new RequestQueue();
+            var request = new RequestMock(RequestPriority.High);
+            const int expectedCountAfterEnqueueing = 1;
 
-            Assert.AreSame(defaultQueue, defaultQueue2);
-            Assert.AreSame(testQueue, testQueue2);
-            Assert.AreNotSame(defaultQueue, testQueue);
-            Assert.AreEqual(expectedDefaultQueueId, defaultQueue.Id);
-            Assert.AreEqual(expectedTestQueueId, testQueue.Id);
+            queueUnderTest.EnqueueAsync(request).Wait();
+
+            Assert.IsTrue(request.IsExecuting, "Request is not executing");
+            Assert.IsTrue(queueUnderTest.IsNotEmpty, "Queue is empty but should contain {0} request(s)", expectedCountAfterEnqueueing);
+            Assert.IsFalse(queueUnderTest.IsEmpty, "Queue is empty but should contain {0} request(s)", expectedCountAfterEnqueueing);
+            Assert.AreEqual(expectedCountAfterEnqueueing, queueUnderTest.Count, "Queue should contain {0} request(s), but contains {1} requests", expectedCountAfterEnqueueing, queueUnderTest.Count);
+
+            //clean up
+            request.AbortAsync().Wait();
         }
 
         [TestMethod]
-        public void TestQueueIsEmpty()
+        public void TestShouldAbortRequest()
         {
-            var queue = RequestQueue.GetRequestQueue("emptyTest");
-    
-            Assert.IsTrue(queue.IsEmpty);
-            Assert.IsFalse(queue.IsNotEmpty);
+            var queueUnderTest = new RequestQueue();
+            var request = new RequestMock(RequestPriority.High);
+            const int expectedCountAfterEnqueueing = 1;
+            const int expectedCountAfterAbort = 0;
+
+            queueUnderTest.EnqueueAsync(request).Wait();
+
+            Assert.IsFalse(request.IsAborted, "Request is aborted");
+            Assert.AreEqual(expectedCountAfterEnqueueing, queueUnderTest.Count, "Queue should contain {0} request(s), but contains {1} requests", expectedCountAfterAbort, queueUnderTest.Count);
+
+            queueUnderTest.AbortAsync(request).Wait();
+
+            Assert.IsTrue(request.IsAborted, "Request is not aborted");
+            Assert.IsFalse(request.IsExecuting, "Request is executing but should be aborted");
+            Assert.IsFalse(queueUnderTest.IsNotEmpty, "Queue contains {0} request(s) but should be empty", queueUnderTest.Count);
+            Assert.IsTrue(queueUnderTest.IsEmpty, "Queue contains {0} request(s) but should be empty", queueUnderTest.Count);
+            Assert.AreEqual(expectedCountAfterAbort, queueUnderTest.Count, "Queue should contain {0} request(s), but contains {1} requests", expectedCountAfterAbort, queueUnderTest.Count);
         }
 
         [TestMethod]
-        public void TestQueueIsNotEmpty()
+        public void TestShouldAbortAllRequests()
         {
-            var queue = RequestQueue.GetRequestQueue("notEmptyTest");
-            var expensiveRequest = new ExpensiveRequest(RequestPriority.High);
-            queue.Enqueue(expensiveRequest);
+            var queueUnderTest = new RequestQueue();
+            var request = new RequestMock(RequestPriority.High);
+            var anotherRequest = new RequestMock(RequestPriority.Low);
+            const int expectedCountAfterEnqueueing = 2;
+            const int expectedCountAfterAbort = 0;
 
-            Assert.IsFalse(queue.IsEmpty);
-            Assert.IsTrue(queue.IsNotEmpty);
+            queueUnderTest.EnqueueAsync(request).Wait();
+            queueUnderTest.EnqueueAsync(anotherRequest).Wait();
 
-            expensiveRequest.AbortAsync().Wait();
+            Assert.IsFalse(request.IsAborted, "Request is aborted");
+            Assert.IsFalse(anotherRequest.IsAborted, "Another request is aborted");
+            Assert.AreEqual(expectedCountAfterEnqueueing, queueUnderTest.Count, "Queue should contain {0} request(s), but contains {1} requests", expectedCountAfterAbort, queueUnderTest.Count);
+
+            queueUnderTest.AbortAllAsync().Wait();
+
+            Assert.IsTrue(request.IsAborted, "Request is not aborted");
+            Assert.IsTrue(anotherRequest.IsAborted, "Another request is not aborted");
+            Assert.AreEqual(expectedCountAfterAbort, queueUnderTest.Count, "Queue should contain {0} request(s), but contains {1} requests", expectedCountAfterAbort, queueUnderTest.Count);
         }
 
         [TestMethod]
-        public void TestEnqueueRequest()
+        public void TestShouldInvokeStartedAndCompletedEvent()
         {
-            var queue = RequestQueue.GetRequestQueue("enqueueTest");
+            var queueUnderTest = new RequestQueue();
+            var request = new RequestMock(RequestPriority.High);
+            var anotherRequest = new RequestMock(RequestPriority.Low);
+            int startedEventCallCount = 0, completedEventCallCount = 0;
+            StartedHandler startedMock = sender => Interlocked.Increment(ref startedEventCallCount);
+            CompletedHandler completedMock = sender => Interlocked.Increment(ref completedEventCallCount);
+            const int expectedStartedEventCallCount = 1, expectedCompletedEventCallCount = 1;
 
-            var expensiveRequest = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest2 = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest3 = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest4 = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest5 = new ExpensiveRequest(RequestPriority.High);
+            queueUnderTest.Started += startedMock;
+            queueUnderTest.Completed += completedMock;
 
-            queue.Enqueue(expensiveRequest);
-            queue.Enqueue(expensiveRequest2);
-            queue.Enqueue(expensiveRequest3);
-            queue.Enqueue(expensiveRequest4);
-            queue.Enqueue(expensiveRequest5);
+            queueUnderTest.EnqueueAsync(request).Wait();
+            queueUnderTest.EnqueueAsync(anotherRequest).Wait();
 
-            Assert.IsTrue(queue.IsNotEmpty);
-            Assert.IsTrue(expensiveRequest.IsBusy);
-            Assert.IsTrue(expensiveRequest2.IsBusy);
-            Assert.IsTrue(expensiveRequest3.IsBusy);
-            Assert.IsTrue(expensiveRequest4.IsBusy);
+            Assert.AreEqual(expectedStartedEventCallCount, startedEventCallCount, "");
 
-            //just four request will be executed at the same time
-            Assert.IsFalse(expensiveRequest5.IsBusy);
+            queueUnderTest.AbortAsync(request).Wait();
+            queueUnderTest.AbortAsync(anotherRequest).Wait();           
 
-            expensiveRequest.AbortAsync().Wait();
-
-            Assert.IsFalse(expensiveRequest.IsBusy);
-            Assert.IsTrue(expensiveRequest5.IsBusy);
-
-            expensiveRequest2.AbortAsync().Wait();
-            expensiveRequest3.AbortAsync().Wait();
-            expensiveRequest4.AbortAsync().Wait();
-            expensiveRequest5.AbortAsync().Wait();
+            Assert.AreEqual(expectedCompletedEventCallCount, completedEventCallCount);
         }
 
-        [TestMethod]
-        public void TestAbortSpecificRequest()
-        {
-            var queue = RequestQueue.GetRequestQueue("abortSpecificTest");
-
-            var expensiveRequest = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest2 = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest3 = new ExpensiveRequest(RequestPriority.High);
-
-            queue.Enqueue(expensiveRequest);
-            queue.Enqueue(expensiveRequest2);
-            queue.Enqueue(expensiveRequest3);
-
-            Assert.IsTrue(queue.IsNotEmpty);
-            Assert.IsTrue(expensiveRequest.IsBusy);
-            Assert.IsTrue(expensiveRequest2.IsBusy);
-            Assert.IsTrue(expensiveRequest3.IsBusy);
-
-            queue.AbortAsync(expensiveRequest2).Wait();
-
-            Assert.IsTrue(expensiveRequest2.IsAborted);
-            Assert.IsFalse(expensiveRequest2.IsBusy);
-
-            expensiveRequest.AbortAsync().Wait();
-            expensiveRequest3.AbortAsync().Wait();
-        }
-
-        [TestMethod]
-        public void TestAbortAllRequests()
-        {
-            var queue = RequestQueue.GetRequestQueue("abortAllTest");
-
-            var expensiveRequest = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest2 = new ExpensiveRequest(RequestPriority.High);
-            var expensiveRequest3 = new ExpensiveRequest(RequestPriority.High);
-
-            queue.Enqueue(expensiveRequest);
-            queue.Enqueue(expensiveRequest2);
-            queue.Enqueue(expensiveRequest3);
-
-            Assert.IsTrue(queue.IsNotEmpty);
-            Assert.IsTrue(expensiveRequest.IsBusy);
-            Assert.IsTrue(expensiveRequest2.IsBusy);
-            Assert.IsTrue(expensiveRequest3.IsBusy);
-
-            queue.AbortAllAsync().Wait();
-
-            Assert.IsTrue(expensiveRequest.IsAborted);
-            Assert.IsFalse(expensiveRequest.IsBusy);
-            Assert.IsTrue(expensiveRequest2.IsAborted);
-            Assert.IsFalse(expensiveRequest2.IsBusy);
-            Assert.IsTrue(expensiveRequest3.IsAborted);
-            Assert.IsFalse(expensiveRequest3.IsBusy);
-
-            Assert.IsTrue(queue.IsEmpty);
-        }
-
-        /// <summary>
-        /// Request mock required to test the request queue
-        /// </summary>
-        public class ExpensiveRequest : IPriorityRequest
-        {
-            private readonly RequestPriority _priority;
-            private SemaphoreSlim _completedSignal;
-
-            public ExpensiveRequest(RequestPriority priority)
-            {
-                _priority = priority;
-                IsCompleted = false;
-            }
-
-            public async Task RunAsync()
-            {
-                IsBusy = true;
-
-                var task = Task.Factory.StartNew(() =>
-                {
-                    while (!IsCompleted)
-                    {
-                        //does nothing
-                    }
-
-                    IsBusy = false;
-                    _completedSignal.Release();
-                });
-
-                await task;
-            }
-
-            public async Task AbortAsync()
-            {
-                _completedSignal = new SemaphoreSlim(0, 1);
-
-                IsAborted = true;
-                IsCompleted = true;
-
-                await _completedSignal.WaitAsync();
-            }
-
-            public bool IsBusy { get; private set; }
-
-            public bool IsAborted { get; private set; }
-
-            private bool IsCompleted { get; set; }
-
-            public int CompareTo(IPriorityRequest other)
-            {
-                return Priority.Compare(other.Priority);
-            }
-
-            public RequestPriority Priority
-            {
-                get { return _priority; }
-            }
-
-            public int QueueHandle { get; set; }
-        }        
-    }*/
+    }
 }
