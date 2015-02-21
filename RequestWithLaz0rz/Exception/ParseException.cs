@@ -4,7 +4,7 @@ namespace RequestWithLaz0rz.Exception
 {
     public class ParseException : System.Exception
     {
-        public ParseException(System.Exception innerException)
+        public ParseException(System.Exception innerException, ContentType contentType)
             : base(null, innerException)
         {
 

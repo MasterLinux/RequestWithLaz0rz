@@ -2045,11 +2045,11 @@
 							"containerChangeable": false,
 							"containerExtending": true,
 							"left": 268,
-							"top": 268,
-							"width": 137,
-							"height": 90,
+							"top": 294,
+							"width": 169,
+							"height": 77,
 							"autoResize": false,
-							"text": "A thread safe priority queue for requests. The number of concurrent threads can be limited.",
+							"text": "A thread safe priority queue for requests. The number of concurrent running threads can be limited.",
 							"wordWrap": true
 						},
 						{
@@ -2075,7 +2075,7 @@
 								"$ref": "AAAAAAFLN1wgymHTdkA="
 							},
 							"lineStyle": 1,
-							"points": "297.8857142857143:358;253.9714285714286:411"
+							"points": "313:371;273:411"
 						},
 						{
 							"_type": "UMLNoteView",
@@ -2098,7 +2098,7 @@
 							"width": 105,
 							"height": 51,
 							"autoResize": false,
-							"text": "Interface for queuable requests",
+							"text": "Interface for queueable requests",
 							"wordWrap": true
 						},
 						{
@@ -3511,9 +3511,9 @@
 							"left": 512,
 							"top": 80,
 							"width": 97,
-							"height": 38,
+							"height": 51,
 							"autoResize": false,
-							"text": "Queueable item",
+							"text": "Interface for queueable items",
 							"wordWrap": true
 						},
 						{
@@ -3539,7 +3539,7 @@
 								"$ref": "AAAAAAFLN2/RkmkYBfI="
 							},
 							"lineStyle": 1,
-							"points": "542.0224719101124:118;512.3595505617977:151"
+							"points": "534.6341463414634:131;515.1219512195122:151"
 						}
 					]
 				},

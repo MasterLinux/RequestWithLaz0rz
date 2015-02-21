@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,7 +9,7 @@ namespace RequestWithLaz0rz.Data
     /// <summary>
     /// Interface for queueable requests
     /// </summary>
-    public interface IRequest : IPriorityQueueItem, IComparable<IRequest> //TODO rename to ITask?
+    public interface IRequest : IPriorityQueueItem, IComparable<IRequest>
     {      
         /// <summary>
         /// Gets the execution priority. A request with a higher
@@ -42,15 +41,51 @@ namespace RequestWithLaz0rz.Data
         bool IsAborted { get; }
     }
 
-    public delegate void StartedHandler(RequestQueue sender);
-    public delegate void CompletedHandler(RequestQueue sender);
+    public delegate void QueueStartedHandler(RequestQueue sender);
+    public delegate void QueueCompletedHandler(RequestQueue sender);
+
+    public delegate void RequestQueueTaskHandler(RequestQueueTask sender);
+
+    public class RequestQueueTask
+    {
+        private readonly RequestQueue _queue;
+        private readonly IRequest[] _requests;
+        private RequestQueueTaskHandler _onCompletedHandler;
+        private bool _isCompleted;
+
+        public RequestQueueTask(RequestQueue queue, params IRequest[] requests)
+        {
+            _queue = queue;
+            _requests = requests;
+        }
+
+        public void Then(RequestQueueTaskHandler handler)
+        {
+            _onCompletedHandler = handler;
+
+            if (_isCompleted)
+            {
+                NotifyCompletion();
+            }
+        }
+
+        public void NotifyCompletion()
+        {
+            _isCompleted = true;
+
+            if (_onCompletedHandler != null)
+            {
+                _onCompletedHandler(this);
+            }
+        }
+    }
 
     /// <summary>
     /// Thread-safe priority queue for requests
     /// </summary>
-    /// <example></example>
+    /// <example>Shows the usage of this queue</example>
     /// <code>
-    /// //create a new queue which allows 3 threads running concurrently
+    /// //create a new queue. 3 threads are granted to run concurrently
     /// var queue = RequestQueue(3);
     /// 
     /// //register lifecycle events
@@ -62,8 +97,19 @@ namespace RequestWithLaz0rz.Data
     /// var anotherRequest = new ExampleRequest();
     /// 
     /// //enqueue and start request
-    /// await queue.EnqueueAsync(request);
-    /// await queue.EnqueueAsync(anotherRequest);
+    /// queue.Enqueue(request);
+    /// queue.Enqueue(anotherRequest).Then((sender, args) => {
+    ///     //optional onCompleted delegate
+    ///     //which is invoked whenever 
+    ///     //"anotherRequest" is completed
+    /// });
+    /// 
+    /// //or enqueue multiple requests
+    /// queue.Enqueue(request, anotherRequest).Then((sender, args) => {
+    ///     //optional onCompleted delegate
+    ///     //which is invoked whenever all 
+    ///     //enqueued requests are completed
+    /// });
     /// 
     /// //cancel a specific request
     /// await queue.AbortAsync(request);
@@ -72,20 +118,20 @@ namespace RequestWithLaz0rz.Data
     /// await queue.AbortAllAsync();
     /// 
     /// </code>
-    public class RequestQueue //TODO rename to TaskQueue?
+    public class RequestQueue
     {
         private readonly PriorityQueue<IRequest> _queue = new PriorityQueue<IRequest>();
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
-        private readonly SemaphoreSlim _maxThreadsSemaphore;
+        private readonly List<IRequest> _concurrentRequests = new List<IRequest>();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();        
+        private readonly SemaphoreSlim _maxThreadsSemaphoreSlim;
         private readonly object _lockObject = new object();
-        private readonly List<IRequest> _currentRequests = new List<IRequest>();
 
         /// <summary>
         /// Maximum number of requests that can be granted concurrently
         /// </summary>
         public const int DefaultMaxThreadCount = 4;
 
-        public event StartedHandler Started;
+        public event QueueStartedHandler Started;
 
         protected virtual void OnStarted()
         {
@@ -93,7 +139,7 @@ namespace RequestWithLaz0rz.Data
             if (handler != null) handler(this);
         }
 
-        public event CompletedHandler Completed;
+        public event QueueCompletedHandler Completed;
 
         protected virtual void OnCompleted()
         {
@@ -107,7 +153,7 @@ namespace RequestWithLaz0rz.Data
         /// <param name="maxThreadCount">The maximum number of requests that can be granted concurrently</param>
         public RequestQueue(int maxThreadCount = DefaultMaxThreadCount)
         {
-            _maxThreadsSemaphore = new SemaphoreSlim(maxThreadCount, maxThreadCount);
+            _maxThreadsSemaphoreSlim = new SemaphoreSlim(maxThreadCount, maxThreadCount);
             MaxThreadCount = maxThreadCount;
         }
 
@@ -120,7 +166,7 @@ namespace RequestWithLaz0rz.Data
             get
             {
                 _lock.EnterReadLock();
-                var count = _queue.Count + _currentRequests.Count;
+                var count = _queue.Count + _concurrentRequests.Count;
                 _lock.ExitReadLock();
 
                 return count;
@@ -157,21 +203,32 @@ namespace RequestWithLaz0rz.Data
         {
             get
             {
-                return MaxThreadCount - _maxThreadsSemaphore.CurrentCount;
+                return MaxThreadCount - _maxThreadsSemaphoreSlim.CurrentCount;
             }
         }
 
         /// <summary>
         /// Enqueues a request and starts it 
         /// </summary>
-        /// <param name="request">The request to enqueue</param>
-        public async Task EnqueueAsync(IRequest request)
+        /// <param name="requests">All requests to enqueue</param>
+        public RequestQueueTask Enqueue(params IRequest[] requests)
         {
+            var queueTask = new RequestQueueTask(this, requests);
+
             _lock.EnterWriteLock();
-            _queue.Insert(request);
+            _queue.InsertAll(requests);
             _lock.ExitWriteLock();
 
-            await DequeueAsync();
+            Task.Run(() =>
+            {
+                for(var i=0; i<requests.Count(); i++) {
+                    DequeueAsync().Wait();
+                }
+
+                queueTask.NotifyCompletion();
+            });
+
+            return queueTask;
         }
 
         /// <summary>
@@ -180,7 +237,7 @@ namespace RequestWithLaz0rz.Data
         /// <returns>The execution task</returns>
         private async Task DequeueAsync()
         {
-            await _maxThreadsSemaphore.WaitAsync();
+            await _maxThreadsSemaphoreSlim.WaitAsync();
 
             if (CurrentThreadCount == 1)
             {
@@ -189,25 +246,27 @@ namespace RequestWithLaz0rz.Data
 
             _lock.EnterWriteLock();
             var request = _queue.DeleteMax();
-            _currentRequests.Add(request);
+            _concurrentRequests.Add(request);
             _lock.ExitWriteLock();
 
-            request.ExecuteAsync().GetAwaiter().OnCompleted(() =>
+            await request.ExecuteAsync().ContinueWith(delegate
             {
                 lock (_lockObject)
-                {                    
+                {
                     _lock.EnterWriteLock();
-                    _currentRequests.Remove(request);                  
-                    _lock.ExitWriteLock();                   
-                                     
+                    _concurrentRequests.Remove(request);
+                    _lock.ExitWriteLock();
+
+                    _maxThreadsSemaphoreSlim.Release();
+
                     if (IsEmpty)
                     {
                         OnCompleted();
                     }
+                }
+            });
 
-                    _maxThreadsSemaphore.Release();
-                }               
-            });           
+            
         }
 
         /// <summary>
@@ -220,8 +279,8 @@ namespace RequestWithLaz0rz.Data
             _lock.EnterWriteLock();
 
             //delete running requests
-            var requests = new List<IRequest>(_currentRequests);
-            _currentRequests.Clear();
+            var requests = new List<IRequest>(_concurrentRequests);
+            _concurrentRequests.Clear();
 
             //delete waiting requests
             requests.AddRange(_queue.DeleteAll());

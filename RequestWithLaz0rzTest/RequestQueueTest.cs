@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using RequestWithLaz0rz;
 using RequestWithLaz0rz.Data;
@@ -18,7 +17,7 @@ namespace RequestWithLaz0rzTest
             var request = new RequestMock(RequestPriority.High);
             const int expectedCountAfterEnqueueing = 1;
 
-            queueUnderTest.EnqueueAsync(request).Wait();
+            queueUnderTest.Enqueue(request);
 
             Assert.IsTrue(request.IsExecuting, "Request is not executing");
             Assert.IsTrue(queueUnderTest.IsNotEmpty, "Queue is empty but should contain {0} request(s)", expectedCountAfterEnqueueing);
@@ -37,7 +36,7 @@ namespace RequestWithLaz0rzTest
             const int expectedCountAfterEnqueueing = 1;
             const int expectedCountAfterAbort = 0;
 
-            queueUnderTest.EnqueueAsync(request).Wait();
+            queueUnderTest.Enqueue(request);
 
             Assert.IsFalse(request.IsAborted, "Request is aborted");
             Assert.AreEqual(expectedCountAfterEnqueueing, queueUnderTest.Count, "Queue should contain {0} request(s), but contains {1} requests", expectedCountAfterAbort, queueUnderTest.Count);
@@ -60,8 +59,8 @@ namespace RequestWithLaz0rzTest
             const int expectedCountAfterEnqueueing = 2;
             const int expectedCountAfterAbort = 0;
 
-            queueUnderTest.EnqueueAsync(request).Wait();
-            queueUnderTest.EnqueueAsync(anotherRequest).Wait();
+            queueUnderTest.Enqueue(request);
+            queueUnderTest.Enqueue(anotherRequest);
 
             Assert.IsFalse(request.IsAborted, "Request is aborted");
             Assert.IsFalse(anotherRequest.IsAborted, "Another request is aborted");
@@ -84,8 +83,8 @@ namespace RequestWithLaz0rzTest
             var requestsCompletedSemaphoreSlim = new SemaphoreSlim(0, 1);
             const int expectedStartedEventCallCount = 1, expectedCompletedEventCallCount = 1;
 
-            StartedHandler startedHandlerMock = sender => Interlocked.Increment(ref startedEventCallCount);
-            CompletedHandler completionHandlerMock = sender =>
+            QueueStartedHandler startedHandlerMock = sender => Interlocked.Increment(ref startedEventCallCount);
+            QueueCompletedHandler completionHandlerMock = sender =>
             {
                 requestsCompletedSemaphoreSlim.Release();
                 Interlocked.Increment(ref completedEventCallCount);
@@ -96,10 +95,10 @@ namespace RequestWithLaz0rzTest
             queueUnderTest.Completed += completionHandlerMock;            
 
             //first started request should invoke started handler 
-            queueUnderTest.EnqueueAsync(request).Wait();
+            queueUnderTest.Enqueue(request);
             Assert.AreEqual(expectedStartedEventCallCount, startedEventCallCount, "Started event handler should be called once");
             
-            queueUnderTest.EnqueueAsync(anotherRequest).Wait();         
+            queueUnderTest.Enqueue(anotherRequest);         
             queueUnderTest.AbortAsync(request).Wait();
 
             //completion handler must not be called if there are currently running requests
@@ -124,9 +123,12 @@ namespace RequestWithLaz0rzTest
             var anotherRequest = new RequestMock(RequestPriority.Low);
             var yetAnotherRequest = new RequestMock(RequestPriority.Medium);
 
-            queueUnderTest.EnqueueAsync(request).GetAwaiter().OnCompleted(() => requestCompletedSemaphoreSlim.Release());
-            queueUnderTest.EnqueueAsync(anotherRequest).GetAwaiter().OnCompleted(() => { });
-            queueUnderTest.EnqueueAsync(yetAnotherRequest).GetAwaiter().OnCompleted(() => { });
+            queueUnderTest.Enqueue(request).Then((sender) =>
+            {
+                requestCompletedSemaphoreSlim.Release();
+            });
+            queueUnderTest.Enqueue(anotherRequest);
+            queueUnderTest.Enqueue(yetAnotherRequest);
 
             Assert.AreEqual(expectedCount, queueUnderTest.Count, "Queue should contain {0} request(s) but contains {1} request(s)", expectedCount, queueUnderTest.Count);
             Assert.AreEqual(expectedMaxThreadCount, queueUnderTest.MaxThreadCount);

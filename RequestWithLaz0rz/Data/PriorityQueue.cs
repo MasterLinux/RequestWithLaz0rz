@@ -74,6 +74,14 @@ namespace RequestWithLaz0rz.Data
             }
         }
 
+        public void InsertAll(params TItem[] items)
+        {
+            foreach (var item in items)
+            {
+                Insert(item);
+            }
+        }
+
         /// <summary>
         /// Adds a new item to the queue
         /// </summary>

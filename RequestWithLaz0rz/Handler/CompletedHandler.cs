@@ -5,13 +5,12 @@ using System.Net.Http.Headers;
 
 namespace RequestWithLaz0rz.Handler
 {
-    /*
     public delegate void CompletedHandler<TResponse>(
         Request<TResponse> sender, 
-        CompletedEventArgs<TResponse> args
+        Response<TResponse> args
     );
 
-    public class CompletedEventArgs<TResponse> : EventArgs
+    public class Response<TResponse> //TODO rename to Response
     {
         private readonly HttpResponseHeaders _headers;
 
@@ -19,7 +18,7 @@ namespace RequestWithLaz0rz.Handler
         /// Initializes the completed event arguments
         /// </summary>
         /// <param name="headers">Headers of the response</param>
-        public CompletedEventArgs(HttpResponseHeaders headers = null)
+        public Response(HttpResponseHeaders headers = null)
         {
             _headers = headers;
         }
@@ -27,7 +26,7 @@ namespace RequestWithLaz0rz.Handler
         /// <summary>
         /// The received response
         /// </summary>
-        public TResponse Response { set; get; }
+        public TResponse Content { set; get; }
 
         /// <summary>
         /// Flag which indicates whether the response is 
@@ -83,5 +82,5 @@ namespace RequestWithLaz0rz.Handler
 
             return null;
         }
-    } */
+    }
 }

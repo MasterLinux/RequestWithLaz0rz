@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -15,16 +16,12 @@ using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
-    /*
-    public abstract class Request<TResponse> : IRequest<TResponse>
+    public abstract class Request<TResponse> : IRequest
     {
-        private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _headers = new Dictionary<string, string>();
-        private readonly Dictionary<string, string> _body = new Dictionary<string, string>();
-        private readonly RequestQueue _queue = RequestQueue.GetRequestQueue();
-        private readonly HttpClient _client = new HttpClient();
-        private SemaphoreSlim _completedSignal;
-        private CompletedEventArgs<TResponse> _completedEventArgs;
+        private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>(); //TODO make parameter public
+        private readonly Dictionary<string, string> _headers = new Dictionary<string, string>(); //TODO make _headers public
+        private readonly Dictionary<string, string> _body = new Dictionary<string, string>(); //TODO make _body public
+        private readonly HttpClient _client = new HttpClient(); //TODO move to ExecuteAsync / GetResponseAsync method 
 
         #region event handler
 
@@ -38,7 +35,7 @@ namespace RequestWithLaz0rz
         /// Executes the completed handler.
         /// </summary>
         /// <param name="args">Event arguments</param>
-        private void OnCompleted(CompletedEventArgs<TResponse> args)
+        private void OnCompleted(Response<TResponse> args)
         {
             var handler = Completed;
             if (handler != null) handler(this, args);
@@ -54,7 +51,7 @@ namespace RequestWithLaz0rz
         /// Executes the error handler
         /// </summary>
         /// <param name="args">Event arguments</param>
-        private void OnError(CompletedEventArgs<TResponse> args)
+        private void OnError(Response<TResponse> args)
         {
             var handler = Error;
             if (handler != null) handler(this, args);
@@ -67,7 +64,7 @@ namespace RequestWithLaz0rz
         /// </summary>
         /// <param name="args">Event arguments</param>
         /// <returns>true if response is valid and no error occured, false otherwise</returns>
-        private bool OnValidation(CompletedEventArgs<TResponse> args)
+        private bool OnValidation(Response<TResponse> args)
         {
             var handler = Validation;
             return handler == null || handler(this, args);
@@ -170,7 +167,7 @@ namespace RequestWithLaz0rz
         /// Flag which indicates whether the 
         /// request is currently executing.
         /// </summary>
-        public bool IsBusy { get; private set; }
+        public bool IsExecuting { get; private set; }
 
         public bool IsAborted { get; private set; } //TODO imlement
 
@@ -180,7 +177,7 @@ namespace RequestWithLaz0rz
         /// <param name="paramDict">Dictionary of KeyValuePair</param>
         /// <param name="query">The required query or null if no KeyValuePair added</param>
         /// <returns></returns>
-        private static bool TryBuildQuery(IReadOnlyCollection<System.Collections.Generic.KeyValuePair<string, string>> paramDict, out string query)  
+        private static bool TryBuildQuery(IReadOnlyCollection<KeyValuePair<string, string>> paramDict, out string query)  
         {
             //does nothing if no KeyValuePair are added
             if (!paramDict.Any())
@@ -262,30 +259,163 @@ namespace RequestWithLaz0rz
 
         //TODO implement SetBody method for objects
 
+        //TODO rename to GetResponseAsync
         /// <summary>
         /// Executes the request directly without adding
         /// it to the request queue. Use GetResponseAsync
         /// instead of this method. 
         /// </summary>
         /// <seealso cref="GetResponseAsync"/>
-        public async Task RunAsync()
+        public async Task ExecuteAsync() //TODO use Task<Response<TResponse>> as return type
         {
-            if (IsBusy) return; //TODO throw exception? -> already running
-            IsBusy = true;
+            if (IsExecuting) return; //TODO throw exception? -> already running
+            Response<TResponse> result = null;
+            IsExecuting = true;
 
             //configure client
             _client
                 .SetAcceptHeader(Accept)
                 .SetUserAgent(UserAgent)
                 .AddHeaders(_headers);
+
+            var response = await GetResponseAsync(_client, this);
+
+            if (response != null && response.IsSuccessStatusCode)
+            {
+                result = await ParseResponseAsync(response, ContentType);
+                result = await ValidateResponseAsync(result); //TODO implement as stream?
+            }
+            else
+            {
+                IsExecuting = false;
+                //TODO invoke error
+            }
+
+            IsExecuting = false;
+
+            //return result;
+        }
+
+        private async Task<Response<TResponse>> ValidateResponseAsync(Response<TResponse> result)
+        {
+            /*
+            TResponse result;
+
+            if (TryParseResponse(responseBody, ContentType, out result))
+            {
+                //TODO update arguments
+                _response = 
+
+                //response is valid
+                if (OnValidation(_response))
+                {
+                    IsExecuting = false;
+                    OnCompleted(_response);
+                }
+
+                //an error occurred
+                else
+                {
+                    IsExecuting = false;
+                    _response.IsErrorOccured = true;
+                    OnError(_response);
+                }
+            }
+            else
+            {
+                IsExecuting = false;
+
+                //TODO update arguments -> add error message
+                _response = new Response<TResponse>(response.Headers)
+                {
+                    Content = default(TResponse),
+                    StatusCode = response.StatusCode,
+                    IsErrorOccured = true,
+                    IsCached = false
+                };
+
+                OnError(_response);
+            }*/
+
+            return result;
+        }
+
+        private static async Task<Response<TResponse>> ParseResponseAsync(HttpResponseMessage response, ContentType contentType)
+        {
+            var content = await response.Content.ReadAsStreamAsync();
+
+            return await Task.Run(() =>
+            {
+                var result = default(TResponse);
+                var isErrorOccured = true;
+                var isCached = false; //TODO set dynamically
+
+                if(content != null) {
+                    try
+                    {
+                        switch (contentType)
+                        {
+                            case ContentType.Json:
+                                isErrorOccured = new JsonSerializer<TResponse>().TryParse(content, out result);
+                                break;
+
+                            case ContentType.Xml:
+                                isErrorOccured = new XmlSerializer<TResponse>().TryParse(content, out result);
+                                break;
+
+                            case ContentType.Text:
+                                isErrorOccured = new TextSerializer<TResponse>().TryParse(content, out result);
+                                break;
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        throw new ParseException(e, contentType);
+                    }
+                }
             
+                return new Response<TResponse>(response.Headers)
+                {
+                    Content = result,
+                    StatusCode = response.StatusCode,
+                    IsErrorOccured = isErrorOccured,
+                    IsCached = isCached 
+                }; ;
+            });           
+        }
+
+        private async Task<HttpResponseMessage> GetAsync(HttpClient client)
+        {
+            return await client.GetAsync(Uri);
+        }
+
+        private async Task<HttpResponseMessage> DeleteAsync(HttpClient client)
+        {
+            return await client.DeleteAsync(Uri);
+        }
+
+        private async Task<HttpResponseMessage> PostAsync(HttpClient client)
+        {
+            var content = new FormUrlEncodedContent(_body); //TODO _body == Body == public
+            return await client.PostAsync(Uri, content);
+        }
+
+        private async Task<HttpResponseMessage> PutAsync(HttpClient client)
+        {
+            var content = new FormUrlEncodedContent(_body); //TODO _body == Body == public
+            return await client.PutAsync(Uri, content);
+        }
+
+        // TODO client, request as parameter
+        private static async Task<HttpResponseMessage> GetResponseAsync(HttpClient client, Request<TResponse> request)
+        {
             HttpResponseMessage response = null;
             FormUrlEncodedContent content;
 
-            switch (HttpMethod)
+            switch (request.HttpMethod)
             {
                 case HttpMethod.GET:
-                    response = await _client.GetAsync(Uri);
+                    response = await request.GetAsync(client);
                     break;
 
                 case HttpMethod.HEAD:
@@ -293,7 +423,7 @@ namespace RequestWithLaz0rz
                     break;
 
                 case HttpMethod.DELETE:
-                    response = await _client.DeleteAsync(Uri);
+                    response = await request.DeleteAsync(client);
                     break;
 
                 case HttpMethod.PATCH:
@@ -309,98 +439,18 @@ namespace RequestWithLaz0rz
                     break;
 
                 case HttpMethod.POST:
-                    content = new FormUrlEncodedContent(_body);
-                    response = await _client.PostAsync(Uri, content);
+                    response = await request.PostAsync(client);
                     break;
 
                 case HttpMethod.PUT:
-                    content = new FormUrlEncodedContent(_body);
-                    response = await _client.PutAsync(Uri, content);
+                    response = await request.PutAsync(client);
                     break;
 
                 default:
-                    throw new HttpMethodNotSupportedException(HttpMethod);
+                    throw new HttpMethodNotSupportedException(request.HttpMethod);
             }
 
-            if (response != null)
-            {
-                var responseBody = await response.Content.ReadAsStreamAsync();
-
-                TResponse result;
-                if (response.IsSuccessStatusCode && TryParseResponse(responseBody, ContentType, out result))
-                {                   
-                    //TODO update arguments
-                    _completedEventArgs = new CompletedEventArgs<TResponse>(response.Headers)
-                    {
-                        Response = result,
-                        StatusCode = response.StatusCode,
-                        IsErrorOccured = false,
-                        IsCached = false //TODO set dynamically
-                    };
-
-                    //response is valid
-                    if (OnValidation(_completedEventArgs))
-                    {
-                        IsBusy = false;
-                        OnCompleted(_completedEventArgs);
-                    }
-
-                    //an error occurred
-                    else
-                    {
-                        IsBusy = false;
-                        _completedEventArgs.IsErrorOccured = true;
-                        OnError(_completedEventArgs);
-                    }                    
-                }
-                else
-                {
-                    IsBusy = false;
-
-                    //TODO update arguments -> add error message
-                    _completedEventArgs = new CompletedEventArgs<TResponse>(response.Headers)
-                    {
-                        Response = default(TResponse),
-                        StatusCode = response.StatusCode,
-                        IsErrorOccured = true,
-                        IsCached = false
-                    };
-
-                    OnError(_completedEventArgs);                  
-                }
-            }
-            else
-            {
-                IsBusy = false;
-                //TODO invoke error
-            }
-
-            IsBusy = false;
-
-            //release completed signal to finish GetResponseAsync method
-            _completedSignal.Release();           
-        }
-
-        /// <summary>
-        /// Adds the request into request queue and
-        /// executes the request asynchroniously.
-        /// </summary>
-        /// <returns>The response</returns>
-        public async Task<CompletedEventArgs<TResponse>> GetResponseAsync()
-        {
-            if (!IsBusy) {
-
-                //initialize signal to wait for
-                _completedSignal = new SemaphoreSlim(0, 1);
-
-                //add to queue
-                _queue.Enqueue(this);
-            }
-
-            //wait for completed event to continue
-            await _completedSignal.WaitAsync();
-
-            return _completedEventArgs;
+            return response;
         }
 
         /// <summary>
@@ -409,45 +459,11 @@ namespace RequestWithLaz0rz
         /// <returns>This request</returns>
         public async Task AbortAsync()
         {
-            if (!IsBusy || _client == null) return;
+            if (!IsExecuting || _client == null) return;
             _client.CancelPendingRequests(); //TODO check whether this is the correct method
-            IsBusy = false;
+            IsExecuting = false;
 
             //TODO implement this method awaitable (async) 
-        } 
-
-        /// <summary>
-        /// Tries to parse the response
-        /// </summary>
-        /// <returns>Whether the response could be parsed</returns>
-        private static bool TryParseResponse(Stream responseBody, ContentType format, out TResponse result)
-        {
-            if (responseBody != null)
-            {
-                //catch exception when content type 
-                //of the response isn't as expected
-                try
-                {
-                    switch (format)
-                    {
-                        case ContentType.Json:                            
-                            return new JsonSerializer<TResponse>().TryParse(responseBody, out result);
-
-                        case ContentType.Xml:
-                            return new XmlSerializer<TResponse>().TryParse(responseBody, out result);
-
-                        case ContentType.Text:
-                            return new TextSerializer<TResponse>().TryParse(responseBody, out result);
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    //TODO just log the exception    
-                }
-            }
-
-            result = default(TResponse);
-            return false;
         }
 
         /// <summary>
@@ -455,9 +471,9 @@ namespace RequestWithLaz0rz
         /// </summary>
         /// <param name="other">The other request to compare with</param>
         /// <returns>Returns whether the priority of this request is higher than the one of the other request</returns>
-        public int CompareTo(IPriorityRequest other)
+        public int CompareTo(IRequest other)
         {
             return Priority.Compare(other.Priority);
         }       
-    } */
+    }
 }
