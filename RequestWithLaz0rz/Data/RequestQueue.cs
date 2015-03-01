@@ -1,46 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace RequestWithLaz0rz.Data
 {
-    /// <summary>
-    /// Interface for queueable requests
-    /// </summary>
-    public interface IRequest : IPriorityQueueItem, IComparable<IRequest>
-    {      
-        /// <summary>
-        /// Gets the execution priority. A request with a higher
-        /// priority will be executed before a request
-        /// with a lower one.
-        /// </summary>
-        RequestPriority Priority { get; }
-
-        /// <summary>
-        /// Executes the request
-        /// </summary>
-        Task ExecuteAsync();
-
-        /// <summary>
-        /// Stops the execution of this request.
-        /// </summary>
-        /// <returns>This request</returns>
-        Task AbortAsync();
-
-        /// <summary>
-        /// Flag which indicates whether the 
-        /// request is currently executing.
-        /// </summary>
-        bool IsExecuting { get; }
-
-        /// <summary>
-        /// Gets whether the request is aborted
-        /// </summary>
-        bool IsAborted { get; }
-    }
-
     public delegate void QueueStartedHandler(RequestQueue sender);
     public delegate void QueueCompletedHandler(RequestQueue sender);
 
@@ -49,11 +13,11 @@ namespace RequestWithLaz0rz.Data
     public class RequestQueueTask
     {
         private readonly RequestQueue _queue;
-        private readonly IRequest[] _requests;
+        private readonly IRequest<dynamic>[] _requests;
         private RequestQueueTaskHandler _onCompletedHandler;
         private bool _isCompleted;
 
-        public RequestQueueTask(RequestQueue queue, params IRequest[] requests)
+        public RequestQueueTask(RequestQueue queue, params IRequest<dynamic>[] requests)
         {
             _queue = queue;
             _requests = requests;
@@ -120,8 +84,8 @@ namespace RequestWithLaz0rz.Data
     /// </code>
     public class RequestQueue
     {
-        private readonly PriorityQueue<IRequest> _queue = new PriorityQueue<IRequest>();
-        private readonly List<IRequest> _concurrentRequests = new List<IRequest>();
+        private readonly PriorityQueue<IRequest<dynamic>> _queue = new PriorityQueue<IRequest<dynamic>>();
+        private readonly List<IRequest<dynamic>> _concurrentRequests = new List<IRequest<dynamic>>();
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();        
         private readonly SemaphoreSlim _maxThreadsSemaphoreSlim;
         private readonly object _lockObject = new object();
@@ -211,7 +175,7 @@ namespace RequestWithLaz0rz.Data
         /// Enqueues a request and starts it 
         /// </summary>
         /// <param name="requests">All requests to enqueue</param>
-        public RequestQueueTask Enqueue(params IRequest[] requests)
+        public RequestQueueTask Enqueue(params IRequest<dynamic>[] requests)
         {
             var queueTask = new RequestQueueTask(this, requests);
 
@@ -249,7 +213,7 @@ namespace RequestWithLaz0rz.Data
             _concurrentRequests.Add(request);
             _lock.ExitWriteLock();
 
-            await request.ExecuteAsync().ContinueWith(delegate
+            await request.GetResponseAsync().ContinueWith(delegate
             {
                 lock (_lockObject)
                 {
@@ -274,12 +238,12 @@ namespace RequestWithLaz0rz.Data
         /// requests from queue
         /// </summary>
         /// <returns>List of deleted requests</returns>
-        private List<IRequest> DeleteAll()
+        private List<IRequest<dynamic>> DeleteAll()
         {
             _lock.EnterWriteLock();
 
             //delete running requests
-            var requests = new List<IRequest>(_concurrentRequests);
+            var requests = new List<IRequest<dynamic>>(_concurrentRequests);
             _concurrentRequests.Clear();
 
             //delete waiting requests
@@ -319,7 +283,7 @@ namespace RequestWithLaz0rz.Data
         /// </summary>
         /// <param name="request">The request to abort</param>
         /// <returns>Abortion task</returns>
-        public async Task AbortAsync(IRequest request)
+        public async Task AbortAsync(IRequest<dynamic> request)
         {
             await Task.Run(() =>
             {

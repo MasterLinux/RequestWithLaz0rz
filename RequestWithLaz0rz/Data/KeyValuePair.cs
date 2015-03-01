@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace RequestWithLaz0rz
+namespace RequestWithLaz0rz.Data
 {
     public class KeyValuePair
     {

@@ -1,114 +1,77 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using RequestWithLaz0rz.Data;
 using RequestWithLaz0rz.Exception;
 using RequestWithLaz0rz.Extension;
-using RequestWithLaz0rz.Handler;
 using RequestWithLaz0rz.Serializer;
 using RequestWithLaz0rz.Type;
 using HttpMethod = RequestWithLaz0rz.Type.HttpMethod;
 
 namespace RequestWithLaz0rz
 {
-    public abstract class Request<TResponse> : IRequest
+    public abstract class Request<TResponse> : IRequest<TResponse>
     {
         private readonly Dictionary<string, string> _parameter = new Dictionary<string, string>(); //TODO make parameter public
         private readonly Dictionary<string, string> _headers = new Dictionary<string, string>(); //TODO make _headers public
         private readonly Dictionary<string, string> _body = new Dictionary<string, string>(); //TODO make _body public
-        private readonly HttpClient _client = new HttpClient(); //TODO move to ExecuteAsync / GetResponseAsync method 
-
-        #region event handler
+        private readonly HttpClient _client = new HttpClient();
 
         /// <summary>
-        /// Event which is invoked whenever the request is
-        /// successfully executed. 
+        /// Gets the list of tasks used to validate the response after parsing
         /// </summary>
-        public event CompletedHandler<TResponse> Completed;
+        public readonly List<IValidationTask<TResponse>> ValidationTasks = new List<IValidationTask<TResponse>>(); 
 
         /// <summary>
-        /// Executes the completed handler.
-        /// </summary>
-        /// <param name="args">Event arguments</param>
-        private void OnCompleted(Response<TResponse> args)
-        {
-            var handler = Completed;
-            if (handler != null) handler(this, args);
-        }
-
-        /// <summary>
-        /// Event which is invoked whenever an error occured
-        /// during the request executing.
-        /// </summary>
-        public event CompletedHandler<TResponse> Error;
-
-        /// <summary>
-        /// Executes the error handler
-        /// </summary>
-        /// <param name="args">Event arguments</param>
-        private void OnError(Response<TResponse> args)
-        {
-            var handler = Error;
-            if (handler != null) handler(this, args);
-        }
-
-        public event ValidationHandler<TResponse> Validation;
-
-        /// <summary>
-        /// Invokes the validation event.
-        /// </summary>
-        /// <param name="args">Event arguments</param>
-        /// <returns>true if response is valid and no error occured, false otherwise</returns>
-        private bool OnValidation(Response<TResponse> args)
-        {
-            var handler = Validation;
-            return handler == null || handler(this, args);
-        }
-
-        #endregion
-
-        /// <summary>
-        /// Gets the queue handle used to find
-        /// the requests position inside the
-        /// priority queue 
+        /// Gets the queue handle which is used
+        /// to get the request from queue
         /// </summary>
         public int QueueHandle { get; set; }
 
+        /// <summary>
+        /// Gets the execution priority of the request.
+        /// </summary>
         public RequestPriority Priority { get; private set; }
 
-        public abstract string BaseUri
-        {
-            get;
-        }
+        /// <summary>
+        /// Gets the base URI of the request
+        /// </summary>
+        public abstract string BaseUri { get; }
 
-        public abstract string Path
-        {
-            get;
-        }
+        /// <summary>
+        /// Gets the request path
+        /// </summary>
+        public abstract string Path { get; }
 
+        /// <summary>
+        /// Gets the accept header. Used to specify certain 
+        /// media types which are acceptable for the response
+        /// </summary>
         public string Accept { get; set; }
 
+        /// <summary>
+        /// Gets the user-agent
+        /// </summary>
         public string UserAgent { get; set; }
 
-        public abstract ContentType ContentType
-        {
-            get;
-        }
+        /// <summary>
+        /// Gets the expected content type of the
+        /// response. This is used to select the
+        /// required parser/serializer
+        /// </summary>
+        public abstract ContentType ContentType { get; }
 
-        public abstract HttpMethod HttpMethod
-        {
-            get;
-        }
+        /// <summary>
+        /// Gets the method of the request
+        /// </summary>
+        public abstract HttpMethod HttpMethod { get; }
 
         /// <summary>
         /// Builds and gets the whole request URI.
         /// </summary>
-        private string Uri
+        public string Uri
         {
             get
             {
@@ -156,7 +119,8 @@ namespace RequestWithLaz0rz
             }
 
             //everything is OK ;)
-            else {
+            else
+            {
                 s = path;
             }
 
@@ -165,10 +129,14 @@ namespace RequestWithLaz0rz
 
         /// <summary>
         /// Flag which indicates whether the 
-        /// request is currently executing.
+        /// request is currently executing
         /// </summary>
         public bool IsExecuting { get; private set; }
 
+        /// <summary>
+        /// Flag which indicates whether the
+        /// request is aborted
+        /// </summary>
         public bool IsAborted { get; private set; } //TODO imlement
 
         /// <summary>
@@ -177,7 +145,7 @@ namespace RequestWithLaz0rz
         /// <param name="paramDict">Dictionary of KeyValuePair</param>
         /// <param name="query">The required query or null if no KeyValuePair added</param>
         /// <returns></returns>
-        private static bool TryBuildQuery(IReadOnlyCollection<KeyValuePair<string, string>> paramDict, out string query)  
+        private static bool TryBuildQuery(IReadOnlyCollection<KeyValuePair<string, string>> paramDict, out string query)
         {
             //does nothing if no KeyValuePair are added
             if (!paramDict.Any())
@@ -202,8 +170,8 @@ namespace RequestWithLaz0rz
 
             query = builder.ToString();
             return true;
-        }     
- 
+        }
+
         /// <summary>
         /// Adds a new parameter. An already existing 
         /// parameter will be overridden.
@@ -265,14 +233,14 @@ namespace RequestWithLaz0rz
         /// it to the request queue. Use GetResponseAsync
         /// instead of this method. 
         /// </summary>
-        /// <seealso cref="GetResponseAsync"/>
-        public async Task ExecuteAsync() //TODO use Task<Response<TResponse>> as return type
+        /// <seealso cref="GetResponseAsync(System.Net.Http.HttpClient,RequestWithLaz0rz.Request{TResponse})"/>
+        public async Task<Response<TResponse>> GetResponseAsync() //TODO use Task<Response<TResponse>> as return type
         {
-            if (IsExecuting) return; //TODO throw exception? -> already running
+            if (IsExecuting) return null; //TODO throw exception? -> already running
             Response<TResponse> result = null;
             IsExecuting = true;
 
-            //configure client
+            // configure client
             _client
                 .SetAcceptHeader(Accept)
                 .SetUserAgent(UserAgent)
@@ -282,8 +250,8 @@ namespace RequestWithLaz0rz
 
             if (response != null && response.IsSuccessStatusCode)
             {
-                result = await ParseResponseAsync(response, ContentType);
-                result = await ValidateResponseAsync(result); //TODO implement as stream?
+                result = await ParseResponseAsync(response, ContentType);             
+                result = await ValidateResponseAsync(result, ValidationTasks);
             }
             else
             {
@@ -293,51 +261,12 @@ namespace RequestWithLaz0rz
 
             IsExecuting = false;
 
-            //return result;
+            return result;
         }
 
-        private async Task<Response<TResponse>> ValidateResponseAsync(Response<TResponse> result)
+        private static async Task<Response<TResponse>> ValidateResponseAsync(Response<TResponse> result, IEnumerable<IValidationTask<TResponse>> validationTasks)
         {
-            /*
-            TResponse result;
-
-            if (TryParseResponse(responseBody, ContentType, out result))
-            {
-                //TODO update arguments
-                _response = 
-
-                //response is valid
-                if (OnValidation(_response))
-                {
-                    IsExecuting = false;
-                    OnCompleted(_response);
-                }
-
-                //an error occurred
-                else
-                {
-                    IsExecuting = false;
-                    _response.IsErrorOccured = true;
-                    OnError(_response);
-                }
-            }
-            else
-            {
-                IsExecuting = false;
-
-                //TODO update arguments -> add error message
-                _response = new Response<TResponse>(response.Headers)
-                {
-                    Content = default(TResponse),
-                    StatusCode = response.StatusCode,
-                    IsErrorOccured = true,
-                    IsCached = false
-                };
-
-                OnError(_response);
-            }*/
-
-            return result;
+            return await Task.Run(() => validationTasks.Aggregate(result, (current, task) => task.Validate(current)));
         }
 
         private static async Task<Response<TResponse>> ParseResponseAsync(HttpResponseMessage response, ContentType contentType)
@@ -350,7 +279,8 @@ namespace RequestWithLaz0rz
                 var isErrorOccured = true;
                 var isCached = false; //TODO set dynamically
 
-                if(content != null) {
+                if (content != null)
+                {
                     try
                     {
                         switch (contentType)
@@ -373,15 +303,15 @@ namespace RequestWithLaz0rz
                         throw new ParseException(e, contentType);
                     }
                 }
-            
+
                 return new Response<TResponse>(response.Headers)
                 {
                     Content = result,
                     StatusCode = response.StatusCode,
                     IsErrorOccured = isErrorOccured,
-                    IsCached = isCached 
+                    IsCached = isCached
                 }; ;
-            });           
+            });
         }
 
         private async Task<HttpResponseMessage> GetAsync(HttpClient client)
@@ -410,7 +340,6 @@ namespace RequestWithLaz0rz
         private static async Task<HttpResponseMessage> GetResponseAsync(HttpClient client, Request<TResponse> request)
         {
             HttpResponseMessage response = null;
-            FormUrlEncodedContent content;
 
             switch (request.HttpMethod)
             {
@@ -471,9 +400,9 @@ namespace RequestWithLaz0rz
         /// </summary>
         /// <param name="other">The other request to compare with</param>
         /// <returns>Returns whether the priority of this request is higher than the one of the other request</returns>
-        public int CompareTo(IRequest other)
+        public int CompareTo(IRequest<TResponse> other)
         {
             return Priority.Compare(other.Priority);
-        }       
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace RequestWithLaz0rz.Extension
+﻿using RequestWithLaz0rz.Type;
+
+namespace RequestWithLaz0rz.Extension
 {
     static public class RequestPriorityExtension
     {

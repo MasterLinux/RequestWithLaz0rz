@@ -1,16 +1,10 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
 
-namespace RequestWithLaz0rz.Handler
+namespace RequestWithLaz0rz.Data
 {
-    public delegate void CompletedHandler<TResponse>(
-        Request<TResponse> sender, 
-        Response<TResponse> args
-    );
-
-    public class Response<TResponse> //TODO rename to Response
+    public class Response<TResponse>
     {
         private readonly HttpResponseHeaders _headers;
 

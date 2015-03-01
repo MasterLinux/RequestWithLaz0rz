@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using RequestWithLaz0rz;
 using RequestWithLaz0rz.Data;
+using RequestWithLaz0rz.Type;
 
 namespace RequestWithLaz0rzTest.Mock
 {
-    public class RequestMock : IRequest
+    public class RequestMock : IRequest<Object>
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1);
 
@@ -19,14 +19,14 @@ namespace RequestWithLaz0rzTest.Mock
             Priority = priority;
         }
 
-        public int CompareTo(IRequest other)
+        public int CompareTo(IRequest<Object> other)
         {
             return Priority.CompareTo(other.Priority);
         }
 
         public RequestPriority Priority { get; private set; }
 
-        public async Task ExecuteAsync()
+        public async Task<Response<Object>> GetResponseAsync()
         {
             if (Started != null) Started();
 
@@ -45,6 +45,8 @@ namespace RequestWithLaz0rzTest.Mock
 
                 if (Completed != null) Completed();
             });
+
+            return null;
         }
 
         public async Task AbortAsync()

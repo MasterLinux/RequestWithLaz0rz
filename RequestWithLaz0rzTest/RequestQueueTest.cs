@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestPlatform.UnitTestFramework;
 using RequestWithLaz0rz;
 using RequestWithLaz0rz.Data;
+using RequestWithLaz0rz.Type;
 using RequestWithLaz0rzTest.Mock;
 
 namespace RequestWithLaz0rzTest

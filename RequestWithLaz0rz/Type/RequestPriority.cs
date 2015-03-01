@@ -1,4 +1,4 @@
-﻿namespace RequestWithLaz0rz
+﻿namespace RequestWithLaz0rz.Type
 {
     /// <summary>
     /// Execution priorities. A request with a higher
